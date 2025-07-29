@@ -2,11 +2,10 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
-import { StyleSheet, Switch } from "react-native";
-import { useState } from "react";
+import { StyleSheet } from "react-native";
+import FlexibleTracker from "../../components/ProgressTracker";
 
 export default function Profile() {
-  const [toggleValue, setToggleValue] = useState(false);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -27,19 +26,44 @@ export default function Profile() {
         <ThemedText type="title">Pusang Orange</ThemedText>
       </ThemedView>
       {/* Progress Bar Section */}
-      <ThemedView style={styles.progressSection}>
-        <ThemedText type="subtitle" style={styles.progressTitle}>
-          Escape from Tarkov Progress:
-        </ThemedText>
-        <ThemedView style={styles.progressBarBackground}>
-          <ThemedView style={styles.progressBarFill} />
-        </ThemedView>
-        {/* Toggle Button Section - moved inside progressSection to avoid gap */}
-        <ThemedView style={styles.toggleSection}>
-          <ThemedText style={styles.toggleLabel}>Kappa</ThemedText>
-          <Switch value={toggleValue} onValueChange={setToggleValue} />
-        </ThemedView>
-      </ThemedView>
+      <FlexibleTracker
+        title="Escape from Tarkov Progress"
+        showProgressBar={true}
+        showToggleButton={true}
+        containerStyle={{
+          backgroundColor: "#F0F0F0",
+
+          borderWidth: 1,
+
+          borderColor: "#4CAF50",
+        }}
+        progressBarStyle={{
+          height: 12,
+
+          borderRadius: 6,
+        }}
+        primaryColor="#4CAF50"
+        onPress={() => console.log("Tracker pressed")}
+      />
+      <FlexibleTracker
+        title="Hideout Progress"
+        showProgressBar={true}
+        showToggleButton={false}
+        containerStyle={{
+          backgroundColor: "#F0F0F0",
+
+          borderWidth: 1,
+
+          borderColor: "#4CAF50",
+        }}
+        progressBarStyle={{
+          height: 12,
+
+          borderRadius: 6,
+        }}
+        primaryColor="#4CAF50"
+        onPress={() => console.log("Tracker pressed")}
+      />
     </ParallaxScrollView>
   );
 }
