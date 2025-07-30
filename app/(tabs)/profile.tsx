@@ -2,138 +2,141 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
+import React from "react";
 import { StyleSheet } from "react-native";
 import FlexibleTracker from "../../components/ProgressTracker";
 
 export default function Profile() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
-      headerImage={
-        <Image
-          source={require("@/assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
+      headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
+      headerImage={<></>}
     >
+      {/* Profile Picture */}
       <ThemedView style={styles.profilePicContainer}>
         <Image
           source={require("@/assets/images/react-logo.png")}
           style={styles.profilePic}
         />
       </ThemedView>
+
+      {/* Username */}
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Pusang Orange</ThemedText>
       </ThemedView>
-      {/* Progress Bar Section */}
-      <FlexibleTracker
-        title="Escape from Tarkov Progress"
-        showProgressBar={true}
-        showToggleButton={true}
-        containerStyle={{
-          backgroundColor: "#F0F0F0",
 
-          borderWidth: 1,
+      {/* Trackers Section */}
+      <ThemedView style={styles.trackersContainer}>
+        {/* Escape from Tarkov Tracker */}
+        <FlexibleTracker
+          title="Escape from Tarkov"
+          showSubtitle={false}
+          showProgressBar={true}
+          showToggleButton={true}
+          activeButtonText="Kappa"
+          inactiveButtonText="EFT"
+          containerStyle={styles.eftTrackerContainer}
+          headerStyle={styles.compactHeader}
+          titleStyle={styles.trackerTitle}
+          progressContainerStyle={styles.progressContainer}
+          toggleButtonStyle={styles.toggleButton}
+          primaryColor="#ff5733"
+          secondaryColor="#ff8a5f"
+          backgroundColor="#4c4c4c"
+          onTogglePress={() => console.log("EFT/Kappa toggled")}
+        />
 
-          borderColor: "#4CAF50",
-        }}
-        progressBarStyle={{
-          height: 12,
-
-          borderRadius: 6,
-        }}
-        primaryColor="#4CAF50"
-        onPress={() => console.log("Tracker pressed")}
-      />
-      <FlexibleTracker
-        title="Hideout Progress"
-        showProgressBar={true}
-        showToggleButton={false}
-        containerStyle={{
-          backgroundColor: "#F0F0F0",
-
-          borderWidth: 1,
-
-          borderColor: "#4CAF50",
-        }}
-        progressBarStyle={{
-          height: 12,
-
-          borderRadius: 6,
-        }}
-        primaryColor="#4CAF50"
-        onPress={() => console.log("Tracker pressed")}
-      />
+        {/* Hideout Progress Tracker */}
+        <FlexibleTracker
+          title="Hideout Progress"
+          showSubtitle={false}
+          showProgressBar={true}
+          showToggleButton={false}
+          containerStyle={styles.hideoutTrackerContainer}
+          headerStyle={styles.compactHeader}
+          titleStyle={styles.trackerTitle}
+          progressContainerStyle={styles.progressContainer}
+          primaryColor="#ff5733"
+          backgroundColor="#2a2a2a"
+          maxProgress={75} // Example: 75% complete
+          animationDuration={2500}
+          onProgressChange={(progress) => {
+            if (progress === 75) {
+              console.log("Hideout progress complete!");
+            }
+          }}
+        />
+      </ThemedView>
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-    marginBottom: 100,
-  },
+  // Profile Section
   profilePicContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
-    marginBottom: 0,
+    marginTop: 20,
   },
   profilePic: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     backgroundColor: "#ccc",
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: "#fff",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 16,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
-  progressSection: {
-    marginHorizontal: 32,
-    marginBottom: 16,
-  },
-  progressTitle: {
-    marginBottom: 8,
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "left",
-  },
-  progressBarBackground: {
-    height: 12,
-    width: "100%",
-    backgroundColor: "#e0e0e0",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  progressBarFill: {
-    height: "100%",
-    width: "60%", // Example progress
-    backgroundColor: "#4caf50",
-    borderRadius: 8,
-  },
-  toggleSection: {
-    flexDirection: "row",
+  titleContainer: {
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 8,
-    marginBottom: 0,
-    gap: 8,
-    width: "100%",
+    marginVertical: 30,
   },
-  toggleLabel: {
-    fontSize: 16,
-    marginRight: 8,
+
+  // Trackers Section
+  trackersContainer: {
+    gap: 10,
+    marginTop: 50,
+  },
+  eftTrackerContainer: {
+    backgroundColor: "#ebebeb",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#c2c2c2",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  hideoutTrackerContainer: {
+    backgroundColor: "#ebebeb",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#c2c2c2",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
+  // Shared Tracker Styles
+  compactHeader: {
+    marginBottom: 8,
+  },
+  trackerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333333",
+  },
+  progressContainer: {
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#444",
+    marginVertical: 8,
+  },
+  toggleButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 60,
   },
 });

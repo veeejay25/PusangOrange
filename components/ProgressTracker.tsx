@@ -1,80 +1,123 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   Animated,
   StyleSheet,
-  ViewStyle,
+  Text,
   TextStyle,
-  Dimensions,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
 
 // Comprehensive Type Definitions
 interface FlexibleTrackerProps {
-  // Core Configuration
+  // Content Configuration
   title?: string;
   subtitle?: string;
 
-  // Visibility Options
+  // Component Visibility
+  showTitle?: boolean;
+  showSubtitle?: boolean;
   showProgressBar?: boolean;
   showToggleButton?: boolean;
+  showProgressText?: boolean;
 
-  // Progress Options
+  // Progress Configuration
   initialProgress?: number;
   maxProgress?: number;
+  animateProgress?: boolean;
+  animationDuration?: number;
 
   // State Management
   initialState?: boolean;
 
-  // Styling
+  // Toggle Button Configuration
+  activeButtonText?: string;
+  inactiveButtonText?: string;
+
+  // Complete Style Overrides
   containerStyle?: ViewStyle;
+  headerStyle?: ViewStyle;
+  textContainerStyle?: ViewStyle;
   titleStyle?: TextStyle;
   subtitleStyle?: TextStyle;
+  toggleButtonStyle?: ViewStyle;
+  toggleButtonTextStyle?: TextStyle;
+  progressContainerStyle?: ViewStyle;
   progressBarStyle?: ViewStyle;
+  progressTextStyle?: TextStyle;
 
-  // Colors
+  // Color Configuration
   primaryColor?: string;
   secondaryColor?: string;
+  backgroundColor?: string;
+  progressBackgroundColor?: string;
 
-  // Custom Render Props
+  // Custom Components
   LeftComponent?: React.ReactNode;
   RightComponent?: React.ReactNode;
+  CustomProgressBar?: React.ReactNode;
 
   // Callbacks
   onStateChange?: (newState: boolean) => void;
   onProgressChange?: (progress: number) => void;
   onPress?: () => void;
+  onTogglePress?: () => void;
 }
 
 const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
-  // Default Props
+  // Content defaults
   title = "Progress Tracker",
   subtitle = "",
+
+  // Visibility defaults
+  showTitle = true,
+  showSubtitle = true,
   showProgressBar = true,
   showToggleButton = true,
+  showProgressText = true,
+
+  // Progress defaults
   initialProgress = 0,
   maxProgress = 100,
+  animateProgress = true,
+  animationDuration = 4000,
+
+  // State defaults
   initialState = true,
 
-  // Styling Defaults
+  // Toggle button defaults
+  activeButtonText = "Active",
+  inactiveButtonText = "Inactive",
+
+  // Style defaults (minimal base styles)
   containerStyle = {},
+  headerStyle = {},
+  textContainerStyle = {},
   titleStyle = {},
   subtitleStyle = {},
+  toggleButtonStyle = {},
+  toggleButtonTextStyle = {},
+  progressContainerStyle = {},
   progressBarStyle = {},
+  progressTextStyle = {},
 
-  // Color Defaults
+  // Color defaults
   primaryColor = "#4CAF50",
   secondaryColor = "#2196F3",
+  backgroundColor,
+  progressBackgroundColor = "#E0E0E0",
 
-  // Custom Components
+  // Custom components
   LeftComponent,
   RightComponent,
+  CustomProgressBar,
 
-  // Callback Handlers
+  // Callbacks
   onStateChange,
   onProgressChange,
   onPress,
+  onTogglePress,
 }) => {
   // State Management
   const [isActiveState, setIsActiveState] = useState(initialState);
@@ -85,11 +128,10 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
 
   // Progress Animation Logic
   useEffect(() => {
-    // Only animate if progress bar is shown
-    if (showProgressBar) {
+    if (showProgressBar && animateProgress) {
       const animation = Animated.timing(progressAnimation, {
         toValue: maxProgress,
-        duration: 4000,
+        duration: animationDuration,
         useNativeDriver: false,
       });
 
@@ -99,25 +141,32 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
         }
       });
 
-      progressAnimation.addListener(({ value }) => {
+      const listener = progressAnimation.addListener(({ value }) => {
         const calculatedProgress = Math.round((value / maxProgress) * 100);
         setCurrentProgress(calculatedProgress);
         onProgressChange?.(calculatedProgress);
       });
 
       return () => {
-        progressAnimation.removeAllListeners();
+        progressAnimation.removeListener(listener);
         animation.stop();
       };
     }
-  }, [showProgressBar, maxProgress, onProgressChange, progressAnimation]);
+  }, [
+    showProgressBar,
+    animateProgress,
+    maxProgress,
+    animationDuration,
+    onProgressChange,
+    progressAnimation,
+  ]);
 
   // State Toggle Handler
-  const toggleState = () => {
+  const handleToggle = () => {
     const newState = !isActiveState;
     setIsActiveState(newState);
     onStateChange?.(newState);
-    onPress?.();
+    onTogglePress?.();
   };
 
   // Progress Width Interpolation
@@ -126,90 +175,106 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
     outputRange: ["0%", "100%"],
   });
 
+  // Dynamic colors based on state
+  const currentColor = isActiveState ? primaryColor : secondaryColor;
+  const currentBackgroundColor = backgroundColor || `${currentColor}10`;
+
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       style={[
-        styles.container,
+        styles.baseContainer,
+        { backgroundColor: currentBackgroundColor },
         containerStyle,
-        {
-          backgroundColor: isActiveState
-            ? `${primaryColor}10`
-            : `${secondaryColor}10`,
-        },
       ]}
     >
       {/* Header Section */}
-      <View style={styles.headerContainer}>
-        {/* Left Component or Default Text */}
-        {LeftComponent || (
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.titleText,
-                titleStyle,
-                { color: isActiveState ? primaryColor : secondaryColor },
-              ]}
-            >
-              {title}
-            </Text>
-            {subtitle && (
-              <Text
+      {(showTitle ||
+        showSubtitle ||
+        showToggleButton ||
+        LeftComponent ||
+        RightComponent) && (
+        <View style={[styles.baseHeader, headerStyle]}>
+          {/* Left Side Content */}
+          {LeftComponent || (
+            <View style={[styles.baseTextContainer, textContainerStyle]}>
+              {showTitle && (
+                <Text
+                  style={[
+                    styles.baseTitle,
+                    { color: currentColor },
+                    titleStyle,
+                  ]}
+                >
+                  {title}
+                </Text>
+              )}
+              {showSubtitle && subtitle && (
+                <Text
+                  style={[
+                    styles.baseSubtitle,
+                    { color: currentColor },
+                    subtitleStyle,
+                  ]}
+                >
+                  {subtitle}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {/* Right Side Content */}
+          {RightComponent ||
+            (showToggleButton && (
+              <TouchableOpacity
+                onPress={handleToggle}
                 style={[
-                  styles.subtitleText,
-                  subtitleStyle,
-                  { color: isActiveState ? primaryColor : secondaryColor },
+                  styles.baseToggleButton,
+                  { backgroundColor: currentColor },
+                  toggleButtonStyle,
                 ]}
               >
-                {subtitle}
-              </Text>
-            )}
-          </View>
-        )}
-
-        {/* Right Component or Toggle Button */}
-        {RightComponent ||
-          (showToggleButton && (
-            <TouchableOpacity
-              onPress={toggleState}
-              style={[
-                styles.toggleButton,
-                {
-                  backgroundColor: isActiveState
-                    ? primaryColor
-                    : secondaryColor,
-                },
-              ]}
-            >
-              <Text style={styles.toggleButtonText}>
-                {isActiveState ? "Kappa" : "EFT"}
-              </Text>
-            </TouchableOpacity>
-          ))}
-      </View>
-
-      {/* Conditional Progress Bar */}
-      {showProgressBar && (
-        <View style={[styles.progressContainer, progressBarStyle]}>
-          <Animated.View
-            style={[
-              styles.progressBar,
-              {
-                width: progressWidth,
-                backgroundColor: isActiveState ? primaryColor : secondaryColor,
-              },
-            ]}
-          />
+                <Text
+                  style={[styles.baseToggleButtonText, toggleButtonTextStyle]}
+                >
+                  {isActiveState ? activeButtonText : inactiveButtonText}
+                </Text>
+              </TouchableOpacity>
+            ))}
         </View>
       )}
 
-      {/* Progress Percentage */}
-      {showProgressBar && (
+      {/* Progress Bar Section */}
+      {showProgressBar &&
+        (CustomProgressBar || (
+          <View
+            style={[
+              styles.baseProgressContainer,
+              { backgroundColor: progressBackgroundColor },
+              progressContainerStyle,
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.baseProgressBar,
+                {
+                  width: progressWidth,
+                  backgroundColor: currentColor,
+                },
+                progressBarStyle,
+              ]}
+            />
+          </View>
+        ))}
+
+      {/* Progress Text */}
+      {showProgressBar && showProgressText && (
         <Text
           style={[
-            styles.progressText,
-            { color: isActiveState ? primaryColor : secondaryColor },
+            styles.baseProgressText,
+            { color: currentColor },
+            progressTextStyle,
           ]}
         >
           {currentProgress}%
@@ -219,61 +284,52 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
   );
 };
 
-// Styles
+// Minimal base styles - can be completely overridden
 const styles = StyleSheet.create({
-  container: {
-    width: Dimensions.get("window").width - 40,
-    borderRadius: 12,
+  baseContainer: {
     padding: 16,
-    alignSelf: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: 8,
   },
-  headerContainer: {
+  baseHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
-  textContainer: {
+  baseTextContainer: {
     flex: 1,
     marginRight: 12,
   },
-  titleText: {
-    fontSize: 18,
-    fontWeight: "600",
+  baseTitle: {
+    fontSize: 16,
+    fontWeight: "500",
   },
-  subtitleText: {
+  baseSubtitle: {
     fontSize: 14,
     marginTop: 4,
     opacity: 0.7,
   },
-  toggleButton: {
+  baseToggleButton: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  toggleButtonText: {
-    color: "white",
-    fontWeight: "500",
-  },
-  progressContainer: {
-    height: 8,
-    backgroundColor: "#E0E0E0",
+    paddingVertical: 6,
     borderRadius: 4,
+  },
+  baseToggleButtonText: {
+    color: "white",
+    fontSize: 14,
+  },
+  baseProgressContainer: {
+    height: 6,
+    borderRadius: 3,
     overflow: "hidden",
     marginBottom: 8,
   },
-  progressBar: {
+  baseProgressBar: {
     height: "100%",
   },
-  progressText: {
+  baseProgressText: {
     textAlign: "center",
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 12,
   },
 });
 
