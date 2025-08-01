@@ -204,6 +204,43 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
   }
 };
 
+export interface HideoutStation {
+  id: string;
+  name: string;
+  imageLink?: string;
+  levels: {
+    level: number;
+    constructionTime: number;
+    description?: string;
+    itemRequirements: {
+      item: {
+        id: string;
+        name: string;
+        iconLink?: string;
+      };
+      count: number;
+    }[];
+    stationLevelRequirements: {
+      station: {
+        id: string;
+        name: string;
+      };
+      level: number;
+    }[];
+    traderRequirements: {
+      trader: {
+        id: string;
+        name: string;
+      };
+      level: number;
+    }[];
+  }[];
+}
+
+export interface HideoutStationsResponse {
+  hideoutStations: HideoutStation[];
+}
+
 export interface PlayerSettings {
   level: number;
   faction: 'USEC' | 'BEAR';
@@ -294,6 +331,97 @@ export const filterQuestsByType = (
     return false;
   });
 };
+
+export const fetchHideoutStations = async (forceRefresh = false): Promise<HideoutStation[]> => {
+  // Check cache first unless force refresh is requested
+  if (!forceRefresh) {
+    const cachedStations = QuestCacheManager.getCachedHideoutStations();
+    if (cachedStations) {
+      console.log('📦 Using cached hideout stations');
+      return cachedStations;
+    }
+  }
+
+  console.log('🌐 Fetching hideout stations from API');
+  
+  const query = `
+    query {
+      hideoutStations {
+        id
+        name
+        imageLink
+        levels {
+          level
+          constructionTime
+          description
+          itemRequirements {
+            item {
+              id
+              name
+              iconLink
+            }
+            count
+          }
+          stationLevelRequirements {
+            station {
+              id
+              name
+            }
+            level
+          }
+          traderRequirements {
+            trader {
+              id
+              name
+            }
+            level
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(TARKOV_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    const stations = result.data?.hideoutStations || [];
+    
+    // Cache the results
+    await QuestCacheManager.cacheHideoutStations(stations);
+    
+    return stations;
+  } catch (error) {
+    console.error('Error fetching hideout stations:', error);
+    
+    // If API fails, try to return cached data as fallback
+    const cachedStations = QuestCacheManager.getCachedHideoutStations();
+    if (cachedStations) {
+      console.log('⚠️ API failed, using cached hideout stations as fallback');
+      return cachedStations;
+    }
+    
+    throw error;
+  }
+};
+
 
 // Keep the old function for backward compatibility
 export const filterAvailableQuests = (quests: Quest[], completedQuestIds: string[] = []): Quest[] => {

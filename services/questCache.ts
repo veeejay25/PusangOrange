@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Quest, Trader } from './tarkovApi';
+import { Quest, Trader, HideoutStation } from './tarkovApi';
 
 interface CachedData<T> {
   data: T;
@@ -12,22 +12,27 @@ interface QuestCache {
 }
 
 interface TraderCache extends CachedData<Trader[]> {}
+interface HideoutStationCache extends CachedData<HideoutStation[]> {}
 
 const QUEST_CACHE_KEY = '@quest_cache';
 const TRADER_CACHE_KEY = '@trader_cache';
+const HIDEOUT_CACHE_KEY = '@hideout_cache';
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
 
 export class QuestCacheManager {
   private static questCache: QuestCache = {};
   private static traderCache: Trader[] | null = null;
   private static traderCacheExpiry = 0;
+  private static hideoutCache: HideoutStation[] | null = null;
+  private static hideoutCacheExpiry = 0;
 
   // Initialize cache from storage
   static async initialize() {
     try {
-      const [questCacheData, traderCacheData] = await Promise.all([
+      const [questCacheData, traderCacheData, hideoutCacheData] = await Promise.all([
         AsyncStorage.getItem(QUEST_CACHE_KEY),
-        AsyncStorage.getItem(TRADER_CACHE_KEY)
+        AsyncStorage.getItem(TRADER_CACHE_KEY),
+        AsyncStorage.getItem(HIDEOUT_CACHE_KEY)
       ]);
 
       if (questCacheData) {
@@ -39,6 +44,14 @@ export class QuestCacheManager {
         if (Date.now() < cached.expiresAt) {
           this.traderCache = cached.data;
           this.traderCacheExpiry = cached.expiresAt;
+        }
+      }
+
+      if (hideoutCacheData) {
+        const cached: HideoutStationCache = JSON.parse(hideoutCacheData);
+        if (Date.now() < cached.expiresAt) {
+          this.hideoutCache = cached.data;
+          this.hideoutCacheExpiry = cached.expiresAt;
         }
       }
     } catch (error) {
@@ -66,6 +79,20 @@ export class QuestCacheManager {
       await AsyncStorage.setItem(TRADER_CACHE_KEY, JSON.stringify(cacheData));
     } catch (error) {
       console.error('Error saving trader cache:', error);
+    }
+  }
+
+  // Save hideout cache to storage
+  private static async saveHideoutCache() {
+    try {
+      const cacheData: HideoutStationCache = {
+        data: this.hideoutCache!,
+        timestamp: Date.now(),
+        expiresAt: this.hideoutCacheExpiry
+      };
+      await AsyncStorage.setItem(HIDEOUT_CACHE_KEY, JSON.stringify(cacheData));
+    } catch (error) {
+      console.error('Error saving hideout cache:', error);
     }
   }
 
@@ -115,16 +142,38 @@ export class QuestCacheManager {
     await this.saveTraderCache();
   }
 
+  // Get cached hideout stations
+  static getCachedHideoutStations(): HideoutStation[] | null {
+    if (!this.hideoutCache || Date.now() > this.hideoutCacheExpiry) {
+      this.hideoutCache = null;
+      this.hideoutCacheExpiry = 0;
+      return null;
+    }
+    return this.hideoutCache;
+  }
+
+  // Cache hideout stations
+  static async cacheHideoutStations(stations: HideoutStation[]) {
+    const now = Date.now();
+    this.hideoutCache = stations;
+    this.hideoutCacheExpiry = now + CACHE_DURATION;
+
+    await this.saveHideoutCache();
+  }
+
   // Clear all caches
   static async clearAllCaches() {
     this.questCache = {};
     this.traderCache = null;
     this.traderCacheExpiry = 0;
+    this.hideoutCache = null;
+    this.hideoutCacheExpiry = 0;
 
     try {
       await Promise.all([
         AsyncStorage.removeItem(QUEST_CACHE_KEY),
-        AsyncStorage.removeItem(TRADER_CACHE_KEY)
+        AsyncStorage.removeItem(TRADER_CACHE_KEY),
+        AsyncStorage.removeItem(HIDEOUT_CACHE_KEY)
       ]);
     } catch (error) {
       console.error('Error clearing caches:', error);
@@ -145,6 +194,11 @@ export class QuestCacheManager {
         cached: this.traderCache !== null,
         expires: this.traderCacheExpiry > now ? new Date(this.traderCacheExpiry) : null,
         count: this.traderCache?.length || 0
+      },
+      hideout: {
+        cached: this.hideoutCache !== null,
+        expires: this.hideoutCacheExpiry > now ? new Date(this.hideoutCacheExpiry) : null,
+        count: this.hideoutCache?.length || 0
       },
       quests: Object.entries(this.questCache).map(([traderId, cache]) => ({
         traderId,
