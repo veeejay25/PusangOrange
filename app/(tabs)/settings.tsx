@@ -1,11 +1,10 @@
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
-
-type PMCFaction = 'USEC' | 'BEAR';
-type GameEdition = 'Standard' | 'Left Behind' | 'Prepare for Escape' | 'Edge of Darkness';
+import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
+import { QuestCacheManager } from "@/services/questCache";
 
 interface DropdownItem {
   label: string;
@@ -25,16 +24,23 @@ const GAME_EDITIONS: DropdownItem[] = [
 ];
 
 export default function Settings() {
-  const [playerLevel, setPlayerLevel] = useState<string>('1');
-  const [pmcFaction, setPmcFaction] = useState<PMCFaction>('USEC');
-  const [gameEdition, setGameEdition] = useState<GameEdition>('Standard');
+  const { settings, updateLevel, updateFaction, updateGameEdition, resetProgress } = usePlayerSettings();
+  const [levelInput, setLevelInput] = useState<string>(settings.level.toString());
   const [factionModalVisible, setFactionModalVisible] = useState(false);
   const [editionModalVisible, setEditionModalVisible] = useState(false);
+
+  // Update level input when settings change (e.g., when loaded from storage)
+  useEffect(() => {
+    setLevelInput(settings.level.toString());
+  }, [settings.level]);
 
   const handleLevelChange = (text: string) => {
     const numericValue = text.replace(/[^0-9]/g, '');
     if (numericValue === '' || (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 79)) {
-      setPlayerLevel(numericValue);
+      setLevelInput(numericValue);
+      if (numericValue !== '') {
+        updateLevel(parseInt(numericValue));
+      }
     }
   };
 
@@ -48,7 +54,26 @@ export default function Settings() {
           text: 'Reset', 
           style: 'destructive',
           onPress: () => {
+            resetProgress();
             Alert.alert('Progress Reset', 'Your quest progress has been reset.');
+          }
+        },
+      ]
+    );
+  };
+
+  const handleClearCache = () => {
+    Alert.alert(
+      'Clear Cache',
+      'This will clear all cached quest and trader data. The app will fetch fresh data from the API on next use.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Clear Cache', 
+          style: 'default',
+          onPress: async () => {
+            await QuestCacheManager.clearAllCaches();
+            Alert.alert('Cache Cleared', 'All cached data has been cleared.');
           }
         },
       ]
@@ -60,10 +85,10 @@ export default function Settings() {
       style={styles.dropdownItem}
       onPress={() => {
         if (factionModalVisible) {
-          setPmcFaction(item.value as PMCFaction);
+          updateFaction(item.value as PMCFaction);
           setFactionModalVisible(false);
         } else if (editionModalVisible) {
-          setGameEdition(item.value as GameEdition);
+          updateGameEdition(item.value as GameEdition);
           setEditionModalVisible(false);
         }
       }}
@@ -89,7 +114,7 @@ export default function Settings() {
           </ThemedText>
           <TextInput
             style={styles.levelInput}
-            value={playerLevel}
+            value={levelInput}
             onChangeText={handleLevelChange}
             keyboardType="numeric"
             placeholder="Enter level (1-79)"
@@ -107,7 +132,7 @@ export default function Settings() {
             style={styles.dropdown}
             onPress={() => setFactionModalVisible(true)}
           >
-            <ThemedText style={styles.dropdownText}>{pmcFaction}</ThemedText>
+            <ThemedText style={styles.dropdownText}>{settings.faction}</ThemedText>
             <ThemedText style={styles.dropdownArrow}>▼</ThemedText>
           </TouchableOpacity>
         </ThemedView>
@@ -121,7 +146,7 @@ export default function Settings() {
             style={styles.dropdown}
             onPress={() => setEditionModalVisible(true)}
           >
-            <ThemedText style={styles.dropdownText}>{gameEdition}</ThemedText>
+            <ThemedText style={styles.dropdownText}>{settings.gameEdition}</ThemedText>
             <ThemedText style={styles.dropdownArrow}>▼</ThemedText>
           </TouchableOpacity>
         </ThemedView>
@@ -132,6 +157,14 @@ export default function Settings() {
           onPress={handleResetProgress}
         >
           <ThemedText style={styles.resetButtonText}>Reset Quest Progress</ThemedText>
+        </TouchableOpacity>
+
+        {/* Clear Cache Button */}
+        <TouchableOpacity
+          style={styles.cacheButton}
+          onPress={handleClearCache}
+        >
+          <ThemedText style={styles.cacheButtonText}>Clear Cache</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
@@ -244,6 +277,19 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   resetButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cacheButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cacheButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',

@@ -1,19 +1,22 @@
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { fetchQuestsByTrader, fetchTraders, filterAvailableQuests, Quest, Trader } from "@/services/tarkovApi";
+import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
+import { fetchQuestsByTrader, fetchTraders, filterQuestsByType, Quest, Trader } from "@/services/tarkovApi";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function Quests() {
+  const { settings } = usePlayerSettings();
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTrader, setSelectedTrader] = useState<Trader | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [questsLoading, setQuestsLoading] = useState(false);
-  const [completedQuestIds] = useState<string[]>([]);
+  const [allTraderQuests, setAllTraderQuests] = useState<Quest[]>([]);
+  const [questFilter, setQuestFilter] = useState<'available' | 'locked' | 'completed'>('available');
 
   useEffect(() => {
     const loadTraders = async () => {
@@ -21,6 +24,31 @@ export default function Quests() {
         setLoading(true);
         const traderData = await fetchTraders();
         setTraders(traderData);
+        
+        // Set Prapor as default selected trader
+        const prapor = traderData.find(trader => trader.name.toLowerCase() === 'prapor');
+        if (prapor) {
+          setSelectedTrader(prapor);
+          // Load Prapor's quests by default
+          setQuestsLoading(true);
+          try {
+            const traderQuests = await fetchQuestsByTrader(prapor.id);
+            setAllTraderQuests(traderQuests);
+            
+            const playerSettings = {
+              level: settings.level,
+              faction: settings.faction,
+              completedQuestIds: settings.completedQuestIds
+            };
+            
+            const filteredQuests = filterQuestsByType(traderQuests, questFilter, playerSettings);
+            setQuests(filteredQuests);
+          } catch (questErr) {
+            setError(questErr instanceof Error ? questErr.message : 'Failed to load default quests');
+          } finally {
+            setQuestsLoading(false);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load traders');
       } finally {
@@ -29,20 +57,55 @@ export default function Quests() {
     };
 
     loadTraders();
-  }, []);
+  }, [questFilter, settings.completedQuestIds, settings.faction, settings.level]);
+
+  // Re-filter quests when settings change
+  useEffect(() => {
+    if (allTraderQuests.length > 0) {
+      const playerSettings = {
+        level: settings.level,
+        faction: settings.faction,
+        completedQuestIds: settings.completedQuestIds
+      };
+      
+      const filteredQuests = filterQuestsByType(allTraderQuests, questFilter, playerSettings);
+      setQuests(filteredQuests);
+    }
+  }, [settings.level, settings.faction, settings.completedQuestIds, questFilter, allTraderQuests]);
 
   const handleTraderSelect = async (trader: Trader) => {
     setSelectedTrader(trader);
     setQuestsLoading(true);
     try {
       const traderQuests = await fetchQuestsByTrader(trader.id);
-      const availableQuests = filterAvailableQuests(traderQuests, completedQuestIds);
-      setQuests(availableQuests);
+      setAllTraderQuests(traderQuests);
+      
+      const playerSettings = {
+        level: settings.level,
+        faction: settings.faction,
+        completedQuestIds: settings.completedQuestIds
+      };
+      
+      const filteredQuests = filterQuestsByType(traderQuests, questFilter, playerSettings);
+      setQuests(filteredQuests);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load quests');
     } finally {
       setQuestsLoading(false);
     }
+  };
+
+  const handleFilterChange = (filter: 'available' | 'locked' | 'completed') => {
+    setQuestFilter(filter);
+    
+    const playerSettings = {
+      level: settings.level,
+      faction: settings.faction,
+      completedQuestIds: settings.completedQuestIds
+    };
+    
+    const filteredQuests = filterQuestsByType(allTraderQuests, filter, playerSettings);
+    setQuests(filteredQuests);
   };
 
   const renderTrader = ({ item }: { item: Trader }) => (
@@ -122,6 +185,34 @@ export default function Quests() {
                 {selectedTrader.name} Quests
               </ThemedText>
               
+              {/* Filter Buttons */}
+              <ThemedView style={styles.filterButtonsContainer}>
+                <TouchableOpacity
+                  style={[styles.filterButton, questFilter === 'available' && styles.filterButtonActive]}
+                  onPress={() => handleFilterChange('available')}
+                >
+                  <ThemedText style={[styles.filterButtonText, questFilter === 'available' && styles.filterButtonTextActive]}>
+                    Available
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.filterButton, questFilter === 'locked' && styles.filterButtonActive]}
+                  onPress={() => handleFilterChange('locked')}
+                >
+                  <ThemedText style={[styles.filterButtonText, questFilter === 'locked' && styles.filterButtonTextActive]}>
+                    Locked
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.filterButton, questFilter === 'completed' && styles.filterButtonActive]}
+                  onPress={() => handleFilterChange('completed')}
+                >
+                  <ThemedText style={[styles.filterButtonText, questFilter === 'completed' && styles.filterButtonTextActive]}>
+                    Completed
+                  </ThemedText>
+                </TouchableOpacity>
+              </ThemedView>
+              
               {questsLoading ? (
                 <ThemedView style={styles.centerContainer}>
                   <ActivityIndicator size="large" />
@@ -153,6 +244,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    marginLeft: -15,
   },
   stepContainer: {
     gap: 8,
@@ -224,11 +316,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   questsSection: {
-    marginTop: 20,
     paddingHorizontal: 16,
   },
   questsTitle: {
     marginBottom: 16,
+    marginLeft: -30,
   },
   questsList: {
     flex: 1,
@@ -267,5 +359,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontStyle: "italic",
     marginTop: 20,
-  }
+  },
+  filterButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    gap: 8,
+    marginLeft: -45,
+    marginRight: -45,
+  },
+  filterButton: {
+    flex: 1,
+    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.2)",
+    alignItems: "center",
+
+  },
+  filterButtonActive: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  filterButtonTextActive: {
+    color: "white",
+  },
 });
