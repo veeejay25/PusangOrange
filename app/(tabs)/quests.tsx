@@ -57,7 +57,7 @@ export default function Quests() {
     };
 
     loadTraders();
-  }, [questFilter, settings.completedQuestIds, settings.faction, settings.level]);
+  }, [settings.completedQuestIds, settings.faction, settings.level]);
 
   // Re-filter quests when settings change
   useEffect(() => {
