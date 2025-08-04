@@ -3,6 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
 import { fetchQuestsByTrader, fetchTraders, filterQuestsByType, Quest, Trader } from "@/services/tarkovApi";
+import { isKappaQuest } from "@/utils/progressCalculator";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -128,9 +129,16 @@ export default function Quests() {
 
   const renderQuest = ({ item }: { item: Quest }) => (
     <ThemedView style={styles.questItem}>
-      <ThemedText type="defaultSemiBold" style={styles.questTitle}>
-        {item.name}
-      </ThemedText>
+      <View style={styles.questHeader}>
+        <ThemedText type="defaultSemiBold" style={styles.questTitle}>
+          {item.name}
+        </ThemedText>
+        {isKappaQuest(item) && (
+          <View style={styles.kappaBanner}>
+            <ThemedText style={styles.kappaText}>KAPPA</ThemedText>
+          </View>
+        )}
+      </View>
       <ThemedText style={styles.questExperience}>
         {item.experience} XP
       </ThemedText>
@@ -334,9 +342,33 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
   },
+  questHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
   questTitle: {
     fontSize: 16,
-    marginBottom: 8,
+    flex: 1,
+    marginRight: 8,
+  },
+  kappaBanner: {
+    backgroundColor: "#FFD700",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  kappaText: {
+    color: "#333",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   questExperience: {
     fontSize: 14,

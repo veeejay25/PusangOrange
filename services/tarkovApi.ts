@@ -15,6 +15,8 @@ export interface TraderResponse {
 export interface Quest {
   id: string;
   name: string;
+  normalizedName?: string;
+  kappaRequired?: boolean;
   trader: {
     id: string;
     name: string;
@@ -55,12 +57,9 @@ export const fetchTraders = async (forceRefresh = false): Promise<Trader[]> => {
   if (!forceRefresh) {
     const cachedTraders = QuestCacheManager.getCachedTraders();
     if (cachedTraders) {
-      console.log('📦 Using cached traders');
       return cachedTraders;
     }
   }
-
-  console.log('🌐 Fetching traders from API');
   
   const query = `
     query {
@@ -105,8 +104,98 @@ export const fetchTraders = async (forceRefresh = false): Promise<Trader[]> => {
     // If API fails, try to return cached data as fallback
     const cachedTraders = QuestCacheManager.getCachedTraders();
     if (cachedTraders) {
-      console.log('⚠️ API failed, using cached traders as fallback');
       return cachedTraders;
+    }
+    
+    throw error;
+  }
+};
+
+export const fetchKappaRequiredQuests = async (forceRefresh = false): Promise<Quest[]> => {
+  // Check cache first unless force refresh is requested
+  if (!forceRefresh) {
+    const cachedKappaQuests = QuestCacheManager.getCachedQuests('kappa');
+    if (cachedKappaQuests) {
+      return cachedKappaQuests;
+    }
+  }
+
+  
+  const query = `
+    query {
+      tasks(lang: en) {
+        id
+        name
+        normalizedName
+        kappaRequired
+        trader {
+          id
+          name
+        }
+        taskRequirements {
+          task {
+            id
+            name
+          }
+        }
+        objectives {
+          id
+          description
+          type
+          maps {
+            id
+            name
+          }
+        }
+        experience
+        traderLevelRequirements {
+          trader {
+            id
+            name
+          }
+          level
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(TARKOV_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    const allTasks = result.data?.tasks || [];
+    
+    // Filter to only include kappa-required quests
+    const kappaQuests = allTasks.filter((task: Quest) => task.kappaRequired === true);
+    
+    // Cache the results using 'kappa' as the trader ID
+    await QuestCacheManager.cacheQuests('kappa', kappaQuests);
+    
+    return kappaQuests;
+  } catch (error) {
+    console.error('Error fetching kappa quests:', error);
+    
+    // If API fails, try to return cached data as fallback
+    const cachedKappaQuests = QuestCacheManager.getCachedQuests('kappa');
+    if (cachedKappaQuests) {
+      return cachedKappaQuests;
     }
     
     throw error;
@@ -118,18 +207,17 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
   if (!forceRefresh) {
     const cachedQuests = QuestCacheManager.getCachedQuests(traderId);
     if (cachedQuests) {
-      console.log(`📦 Using cached quests for trader ${traderId}`);
       return cachedQuests;
     }
   }
-
-  console.log(`🌐 Fetching quests for trader ${traderId} from API`);
   
   const query = `
     query {
       tasks(lang: en) {
         id
         name
+        normalizedName
+        kappaRequired
         trader {
           id
           name
@@ -196,7 +284,6 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
     // If API fails, try to return cached data as fallback
     const cachedQuests = QuestCacheManager.getCachedQuests(traderId);
     if (cachedQuests) {
-      console.log(`⚠️ API failed, using cached quests for trader ${traderId} as fallback`);
       return cachedQuests;
     }
     
@@ -292,7 +379,7 @@ export const filterQuestsByType = (
       );
       
       // Check trader level requirements
-      const hasTraderLevelRequirement = quest.traderLevelRequirements.every(requirement => {
+      const hasTraderLevelRequirement = quest.traderLevelRequirements.every(() => {
         // For now, assume player meets trader level requirements
         // This would need actual trader level data from player settings
         return true;
@@ -337,12 +424,9 @@ export const fetchHideoutStations = async (forceRefresh = false): Promise<Hideou
   if (!forceRefresh) {
     const cachedStations = QuestCacheManager.getCachedHideoutStations();
     if (cachedStations) {
-      console.log('📦 Using cached hideout stations');
       return cachedStations;
     }
   }
-
-  console.log('🌐 Fetching hideout stations from API');
   
   const query = `
     query {
@@ -414,7 +498,6 @@ export const fetchHideoutStations = async (forceRefresh = false): Promise<Hideou
     // If API fails, try to return cached data as fallback
     const cachedStations = QuestCacheManager.getCachedHideoutStations();
     if (cachedStations) {
-      console.log('⚠️ API failed, using cached hideout stations as fallback');
       return cachedStations;
     }
     

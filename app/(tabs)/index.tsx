@@ -2,11 +2,48 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
-import React from "react";
-import { StyleSheet } from "react-native";
+import { useState } from "react";
+import { StyleSheet, ActivityIndicator } from "react-native";
 import FlexibleTracker from "../../components/ProgressTracker";
+import { useProgressData } from "@/hooks/useProgressData";
 
 export default function Profile() {
+  const { questProgress, kappaProgress, hideoutProgress, isLoading, error } = useProgressData();
+  const [isKappaMode, setIsKappaMode] = useState(false);
+
+  const handleEftToggle = () => {
+    setIsKappaMode(!isKappaMode);
+  };
+
+  const currentQuestProgress = isKappaMode ? kappaProgress : questProgress;
+
+  if (isLoading) {
+    return (
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
+        headerImage={<></>}
+      >
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#ff5733" />
+          <ThemedText style={styles.loadingText}>Loading progress data...</ThemedText>
+        </ThemedView>
+      </ParallaxScrollView>
+    );
+  }
+
+  if (error) {
+    return (
+      <ParallaxScrollView
+        headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
+        headerImage={<></>}
+      >
+        <ThemedView style={styles.errorContainer}>
+          <ThemedText style={styles.errorText}>Error: {error}</ThemedText>
+        </ThemedView>
+      </ParallaxScrollView>
+    );
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
@@ -29,42 +66,48 @@ export default function Profile() {
       <ThemedView style={styles.trackersContainer}>
         {/* Escape from Tarkov Tracker */}
         <FlexibleTracker
-          title="Escape from Tarkov"
-          showSubtitle={false}
+          title={isKappaMode ? "Kappa Progress" : "Quest Progress"}
+          subtitle={`${currentQuestProgress.completed}/${currentQuestProgress.total} quests completed`}
+          showSubtitle={true}
           showProgressBar={true}
           showToggleButton={true}
+          showProgressText={true}
           activeButtonText="Kappa"
           inactiveButtonText="EFT"
+          maxProgress={currentQuestProgress.percentage}
+          animateProgress={true}
+          animationDuration={2000}
+          initialState={isKappaMode}
           containerStyle={styles.eftTrackerContainer}
           headerStyle={styles.compactHeader}
           titleStyle={styles.trackerTitle}
+          subtitleStyle={styles.trackerSubtitle}
           progressContainerStyle={styles.progressContainer}
           toggleButtonStyle={styles.toggleButton}
           primaryColor="#ff5733"
           secondaryColor="#ff8a5f"
           backgroundColor="#4c4c4c"
-          onTogglePress={() => console.log("EFT/Kappa toggled")}
+          onTogglePress={handleEftToggle}
         />
 
         {/* Hideout Progress Tracker */}
         <FlexibleTracker
           title="Hideout Progress"
-          showSubtitle={false}
+          subtitle={`${hideoutProgress.completed}/${hideoutProgress.total} levels completed`}
+          showSubtitle={true}
           showProgressBar={true}
           showToggleButton={false}
+          showProgressText={true}
+          maxProgress={hideoutProgress.percentage}
+          animateProgress={true}
+          animationDuration={2500}
           containerStyle={styles.hideoutTrackerContainer}
           headerStyle={styles.compactHeader}
           titleStyle={styles.trackerTitle}
+          subtitleStyle={styles.trackerSubtitle}
           progressContainerStyle={styles.progressContainer}
           primaryColor="#ff5733"
           backgroundColor="#2a2a2a"
-          maxProgress={75} // Example: 75% complete
-          animationDuration={2500}
-          onProgressChange={(progress) => {
-            if (progress === 75) {
-              console.log("Hideout progress complete!");
-            }
-          }}
         />
       </ThemedView>
     </ParallaxScrollView>
@@ -127,6 +170,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#333333",
   },
+  trackerSubtitle: {
+    fontSize: 14,
+    color: "#666666",
+    marginTop: 2,
+  },
   progressContainer: {
     height: 12,
     borderRadius: 6,
@@ -138,5 +186,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     minWidth: 60,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 100,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 16,
+    opacity: 0.7,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 100,
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#ff5733",
+    textAlign: "center",
   },
 });
