@@ -9,6 +9,8 @@ export interface PlayerSettings {
   faction: PMCFaction;
   gameEdition: GameEdition;
   completedQuestIds: string[];
+  hideoutModuleLevels: Record<string, number>; // module id -> current level
+  traderLevels: Record<string, number>; // trader id -> current level
 }
 
 interface PlayerSettingsContextType {
@@ -18,6 +20,8 @@ interface PlayerSettingsContextType {
   updateGameEdition: (edition: GameEdition) => void;
   addCompletedQuest: (questId: string) => void;
   removeCompletedQuest: (questId: string) => void;
+  updateHideoutModuleLevel: (moduleId: string, level: number) => void;
+  updateTraderLevel: (traderId: string, level: number) => void;
   resetProgress: () => void;
 }
 
@@ -43,6 +47,8 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
     faction: 'USEC',
     gameEdition: 'Standard',
     completedQuestIds: [],
+    hideoutModuleLevels: {},
+    traderLevels: {},
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -53,7 +59,16 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
         const savedSettings = await AsyncStorage.getItem(STORAGE_KEY);
         if (savedSettings) {
           const parsedSettings = JSON.parse(savedSettings);
-          setSettings(parsedSettings);
+          // Migrate old settings to new format
+          const migratedSettings: PlayerSettings = {
+            level: parsedSettings.level || 1,
+            faction: parsedSettings.faction || 'USEC',
+            gameEdition: parsedSettings.gameEdition || 'Standard',
+            completedQuestIds: parsedSettings.completedQuestIds || [],
+            hideoutModuleLevels: parsedSettings.hideoutModuleLevels || {},
+            traderLevels: parsedSettings.traderLevels || {},
+          };
+          setSettings(migratedSettings);
         }
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -106,10 +121,32 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
     }));
   };
 
+  const updateHideoutModuleLevel = (moduleId: string, level: number) => {
+    setSettings(prev => ({
+      ...prev,
+      hideoutModuleLevels: {
+        ...prev.hideoutModuleLevels,
+        [moduleId]: level
+      }
+    }));
+  };
+
+  const updateTraderLevel = (traderId: string, level: number) => {
+    setSettings(prev => ({
+      ...prev,
+      traderLevels: {
+        ...prev.traderLevels,
+        [traderId]: level
+      }
+    }));
+  };
+
   const resetProgress = () => {
     setSettings(prev => ({
       ...prev,
-      completedQuestIds: []
+      completedQuestIds: [],
+      hideoutModuleLevels: {},
+      traderLevels: {}
     }));
   };
 
@@ -122,6 +159,8 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
         updateGameEdition,
         addCompletedQuest,
         removeCompletedQuest,
+        updateHideoutModuleLevel,
+        updateTraderLevel,
         resetProgress,
       }}
     >

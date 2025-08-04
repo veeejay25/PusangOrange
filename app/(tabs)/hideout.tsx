@@ -1,18 +1,24 @@
 import { Image } from "expo-image";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Dimensions, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { fetchHideoutStations, HideoutStation } from "@/services/tarkovApi";
+import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
+import { fetchHideoutStations, filterHideoutModulesByType, HideoutStation } from "@/services/tarkovApi";
 
 interface HideoutModuleCardProps {
   station: HideoutStation;
+  currentLevel: number;
+  maxLevel: number;
 }
 
-function HideoutModuleCard({ station }: HideoutModuleCardProps) {
+function HideoutModuleCard({ station, currentLevel, maxLevel }: HideoutModuleCardProps) {
+  const nextLevel = currentLevel + 1;
+  const nextLevelData = station.levels.find(l => l.level === nextLevel);
+  
   return (
     <ThemedView style={styles.moduleCard}>
       <View style={styles.moduleImageContainer}>
@@ -33,11 +39,19 @@ function HideoutModuleCard({ station }: HideoutModuleCardProps) {
           {station.name}
         </ThemedText>
         <ThemedText style={styles.moduleDetails}>
-          {station.levels.length} levels available
+          Level {currentLevel}/{maxLevel}
         </ThemedText>
-        {station.levels[0] && (
+        {nextLevelData && currentLevel < maxLevel ? (
           <ThemedText style={styles.moduleRequirements}>
-            Level 1: {station.levels[0].itemRequirements.length} items required
+            Next: {nextLevelData.itemRequirements.length} items
+          </ThemedText>
+        ) : currentLevel >= maxLevel ? (
+          <ThemedText style={[styles.moduleRequirements, { color: '#4CAF50' }]}>
+            Maxed
+          </ThemedText>
+        ) : (
+          <ThemedText style={styles.moduleRequirements}>
+            Locked
           </ThemedText>
         )}
       </View>
@@ -46,16 +60,19 @@ function HideoutModuleCard({ station }: HideoutModuleCardProps) {
 }
 
 export default function HideoutScreen() {
-  const [stations, setStations] = useState<HideoutStation[]>([]);
+  const { settings } = usePlayerSettings();
+  const [allStations, setAllStations] = useState<HideoutStation[]>([]);
+  const [filteredStations, setFilteredStations] = useState<HideoutStation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [moduleFilter, setModuleFilter] = useState<'available' | 'locked' | 'maxed'>('available');
 
   useEffect(() => {
     const loadHideoutStations = async () => {
       try {
         setLoading(true);
         const data = await fetchHideoutStations();
-        setStations(data);
+        setAllStations(data);
         setError(null);
       } catch (err) {
         console.error('Failed to load hideout stations:', err);
@@ -67,6 +84,20 @@ export default function HideoutScreen() {
 
     loadHideoutStations();
   }, []);
+
+  // Filter stations when settings or filter changes
+  useEffect(() => {
+    if (allStations.length > 0 && settings) {
+      const playerSettings = {
+        level: settings.level || 1,
+        hideoutModuleLevels: settings.hideoutModuleLevels || {},
+        traderLevels: settings.traderLevels || {}
+      };
+      
+      const filtered = filterHideoutModulesByType(allStations, moduleFilter, playerSettings);
+      setFilteredStations(filtered);
+    }
+  }, [allStations, moduleFilter, settings]);
 
   const renderContent = () => {
     if (loading) {
@@ -87,7 +118,7 @@ export default function HideoutScreen() {
       );
     }
 
-    if (stations.length === 0) {
+    if (allStations.length === 0) {
       return (
         <ThemedView style={styles.centerContainer}>
           <IconSymbol name="house" size={48} color="#666" />
@@ -101,14 +132,55 @@ export default function HideoutScreen() {
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Hideout Modules</ThemedText>
           <ThemedText style={styles.subtitle}>
-            {stations.length} modules available
+            {filteredStations.length} of {allStations.length} modules
           </ThemedText>
         </ThemedView>
 
+        {/* Filter Buttons */}
+        <ThemedView style={styles.filterButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.filterButton, moduleFilter === 'available' && styles.filterButtonActive]}
+            onPress={() => setModuleFilter('available')}
+          >
+            <ThemedText style={[styles.filterButtonText, moduleFilter === 'available' && styles.filterButtonTextActive]}>
+              Available
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, moduleFilter === 'locked' && styles.filterButtonActive]}
+            onPress={() => setModuleFilter('locked')}
+          >
+            <ThemedText style={[styles.filterButtonText, moduleFilter === 'locked' && styles.filterButtonTextActive]}>
+              Locked
+            </ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, moduleFilter === 'maxed' && styles.filterButtonActive]}
+            onPress={() => setModuleFilter('maxed')}
+          >
+            <ThemedText style={[styles.filterButtonText, moduleFilter === 'maxed' && styles.filterButtonTextActive]}>
+              Maxed
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+
         <View style={styles.moduleGrid}>
-          {stations.map((station) => (
-            <HideoutModuleCard key={station.id} station={station} />
-          ))}
+          {filteredStations.length > 0 ? (
+            filteredStations.map((station) => (
+              <HideoutModuleCard 
+                key={station.id} 
+                station={station} 
+                currentLevel={settings?.hideoutModuleLevels?.[station.id] || 0}
+                maxLevel={station.levels.length}
+              />
+            ))
+          ) : (
+            <ThemedView style={styles.centerContainer}>
+              <ThemedText style={styles.emptyText}>
+                No {moduleFilter} modules found.
+              </ThemedText>
+            </ThemedView>
+          )}
         </View>
       </>
     );
@@ -235,5 +307,32 @@ const styles = StyleSheet.create({
     color: '#888',
     lineHeight: 12,
     textAlign: 'center',
+  },
+  filterButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  filterButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filterButtonTextActive: {
+    color: 'white',
   },
 });

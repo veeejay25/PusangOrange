@@ -431,3 +431,75 @@ export const filterAvailableQuests = (quests: Quest[], completedQuestIds: string
     completedQuestIds
   });
 };
+
+export const filterHideoutModulesByType = (
+  stations: HideoutStation[], 
+  type: 'available' | 'locked' | 'maxed',
+  playerSettings: {
+    level: number;
+    hideoutModuleLevels: Record<string, number>;
+    traderLevels: Record<string, number>;
+  }
+): HideoutStation[] => {
+  const { hideoutModuleLevels, traderLevels } = playerSettings;
+
+  return stations.filter(station => {
+    const currentModuleLevel = hideoutModuleLevels[station.id] || 0;
+    const maxLevel = station.levels.length;
+    
+    if (type === 'maxed') {
+      return currentModuleLevel >= maxLevel;
+    }
+    
+    if (type === 'available') {
+      // Module is maxed, so not available for upgrade
+      if (currentModuleLevel >= maxLevel) return false;
+      
+      // Get the next level requirements (currentLevel + 1)
+      const nextLevel = currentModuleLevel + 1;
+      const nextLevelData = station.levels.find(l => l.level === nextLevel);
+      
+      if (!nextLevelData) return false;
+      
+      // Check station level requirements
+      const hasStationRequirements = nextLevelData.stationLevelRequirements.every(req => {
+        const requiredStationLevel = hideoutModuleLevels[req.station.id] || 0;
+        return requiredStationLevel >= req.level;
+      });
+      
+      // Check trader level requirements
+      const hasTraderRequirements = nextLevelData.traderRequirements.every(req => {
+        const currentTraderLevel = traderLevels[req.trader.id] || 1;
+        return currentTraderLevel >= req.level;
+      });
+      
+      return hasStationRequirements && hasTraderRequirements;
+    }
+    
+    if (type === 'locked') {
+      // Module is maxed, so not locked
+      if (currentModuleLevel >= maxLevel) return false;
+      
+      // Get the next level requirements
+      const nextLevel = currentModuleLevel + 1;
+      const nextLevelData = station.levels.find(l => l.level === nextLevel);
+      
+      if (!nextLevelData) return true; // No next level data means locked
+      
+      // Check if any requirements are not met
+      const hasStationRequirements = nextLevelData.stationLevelRequirements.every(req => {
+        const requiredStationLevel = hideoutModuleLevels[req.station.id] || 0;
+        return requiredStationLevel >= req.level;
+      });
+      
+      const hasTraderRequirements = nextLevelData.traderRequirements.every(req => {
+        const currentTraderLevel = traderLevels[req.trader.id] || 1;
+        return currentTraderLevel >= req.level;
+      });
+      
+      return !hasStationRequirements || !hasTraderRequirements;
+    }
+    
+    return false;
+  });
+};

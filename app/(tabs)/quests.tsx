@@ -41,7 +41,7 @@ export default function Quests() {
               completedQuestIds: settings.completedQuestIds
             };
             
-            const filteredQuests = filterQuestsByType(traderQuests, questFilter, playerSettings);
+            const filteredQuests = filterQuestsByType(traderQuests, 'available', playerSettings);
             setQuests(filteredQuests);
           } catch (questErr) {
             setError(questErr instanceof Error ? questErr.message : 'Failed to load default quests');
