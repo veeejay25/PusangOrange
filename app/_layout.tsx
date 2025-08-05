@@ -6,8 +6,6 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { PlayerSettingsProvider } from '@/contexts/PlayerSettingsContext';
-import { QuestCacheManager } from '@/services/questCache';
-import { useEffect } from 'react';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -15,10 +13,6 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Initialize quest cache on app startup
-  useEffect(() => {
-    QuestCacheManager.initialize();
-  }, []);
 
   if (!loaded) {
     // Async font loading only occurs in development.

@@ -1,4 +1,4 @@
-import { QuestCacheManager } from './questCache';
+import { PersistentStorage } from './persistentStorage';
 
 const TARKOV_API_URL = 'https://api.tarkov.dev/graphql';
 
@@ -53,11 +53,11 @@ export interface QuestsResponse {
 }
 
 export const fetchTraders = async (forceRefresh = false): Promise<Trader[]> => {
-  // Check cache first unless force refresh is requested
+  // Check persistent storage first unless force refresh is requested
   if (!forceRefresh) {
-    const cachedTraders = QuestCacheManager.getCachedTraders();
-    if (cachedTraders) {
-      return cachedTraders;
+    const persistentTraders = await PersistentStorage.getTraders();
+    if (persistentTraders) {
+      return persistentTraders;
     }
   }
   
@@ -94,17 +94,17 @@ export const fetchTraders = async (forceRefresh = false): Promise<Trader[]> => {
 
     const traders = result.data?.traders || [];
     
-    // Cache the results
-    await QuestCacheManager.cacheTraders(traders);
+    // Store in persistent storage
+    await PersistentStorage.storeTraders(traders);
     
     return traders;
   } catch (error) {
     console.error('Error fetching traders:', error);
     
-    // If API fails, try to return cached data as fallback
-    const cachedTraders = QuestCacheManager.getCachedTraders();
-    if (cachedTraders) {
-      return cachedTraders;
+    // If API fails, try to return persistent data as fallback
+    const persistentTraders = await PersistentStorage.getTraders();
+    if (persistentTraders) {
+      return persistentTraders;
     }
     
     throw error;
@@ -112,11 +112,11 @@ export const fetchTraders = async (forceRefresh = false): Promise<Trader[]> => {
 };
 
 export const fetchKappaRequiredQuests = async (forceRefresh = false): Promise<Quest[]> => {
-  // Check cache first unless force refresh is requested
+  // Check persistent storage first unless force refresh is requested
   if (!forceRefresh) {
-    const cachedKappaQuests = QuestCacheManager.getCachedQuests('kappa');
-    if (cachedKappaQuests) {
-      return cachedKappaQuests;
+    const persistentKappaQuests = await PersistentStorage.getKappaQuests();
+    if (persistentKappaQuests) {
+      return persistentKappaQuests;
     }
   }
 
@@ -185,17 +185,17 @@ export const fetchKappaRequiredQuests = async (forceRefresh = false): Promise<Qu
     // Filter to only include kappa-required quests
     const kappaQuests = allTasks.filter((task: Quest) => task.kappaRequired === true);
     
-    // Cache the results using 'kappa' as the trader ID
-    await QuestCacheManager.cacheQuests('kappa', kappaQuests);
+    // Store in persistent storage
+    await PersistentStorage.storeKappaQuests(kappaQuests);
     
     return kappaQuests;
   } catch (error) {
     console.error('Error fetching kappa quests:', error);
     
-    // If API fails, try to return cached data as fallback
-    const cachedKappaQuests = QuestCacheManager.getCachedQuests('kappa');
-    if (cachedKappaQuests) {
-      return cachedKappaQuests;
+    // If API fails, try to return persistent data as fallback
+    const persistentKappaQuests = await PersistentStorage.getKappaQuests();
+    if (persistentKappaQuests) {
+      return persistentKappaQuests;
     }
     
     throw error;
@@ -203,11 +203,13 @@ export const fetchKappaRequiredQuests = async (forceRefresh = false): Promise<Qu
 };
 
 export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false): Promise<Quest[]> => {
-  // Check cache first unless force refresh is requested
+  // Check persistent storage first unless force refresh is requested
   if (!forceRefresh) {
-    const cachedQuests = QuestCacheManager.getCachedQuests(traderId);
-    if (cachedQuests) {
-      return cachedQuests;
+    const persistentQuests = await PersistentStorage.getQuests();
+    if (persistentQuests) {
+      // Filter quests by trader from persistent storage
+      const traderQuests = persistentQuests.filter(quest => quest.trader.id === traderId);
+      return traderQuests;
     }
   }
   
@@ -274,17 +276,18 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
     // Filter tasks by trader
     const traderQuests = allTasks.filter((task: Quest) => task.trader.id === traderId);
     
-    // Cache the results
-    await QuestCacheManager.cacheQuests(traderId, traderQuests);
+    // Store all tasks in persistent storage for future use
+    await PersistentStorage.storeQuests(allTasks);
     
     return traderQuests;
   } catch (error) {
     console.error('Error fetching quests:', error);
     
-    // If API fails, try to return cached data as fallback
-    const cachedQuests = QuestCacheManager.getCachedQuests(traderId);
-    if (cachedQuests) {
-      return cachedQuests;
+    // If API fails, try to return persistent data as fallback
+    const persistentQuests = await PersistentStorage.getQuests();
+    if (persistentQuests) {
+      const traderQuests = persistentQuests.filter(quest => quest.trader.id === traderId);
+      return traderQuests;
     }
     
     throw error;
@@ -420,11 +423,11 @@ export const filterQuestsByType = (
 };
 
 export const fetchHideoutStations = async (forceRefresh = false): Promise<HideoutStation[]> => {
-  // Check cache first unless force refresh is requested
+  // Check persistent storage first unless force refresh is requested
   if (!forceRefresh) {
-    const cachedStations = QuestCacheManager.getCachedHideoutStations();
-    if (cachedStations) {
-      return cachedStations;
+    const persistentStations = await PersistentStorage.getHideoutStations();
+    if (persistentStations) {
+      return persistentStations;
     }
   }
   
@@ -488,17 +491,17 @@ export const fetchHideoutStations = async (forceRefresh = false): Promise<Hideou
 
     const stations = result.data?.hideoutStations || [];
     
-    // Cache the results
-    await QuestCacheManager.cacheHideoutStations(stations);
+    // Store in persistent storage
+    await PersistentStorage.storeHideoutStations(stations);
     
     return stations;
   } catch (error) {
     console.error('Error fetching hideout stations:', error);
     
-    // If API fails, try to return cached data as fallback
-    const cachedStations = QuestCacheManager.getCachedHideoutStations();
-    if (cachedStations) {
-      return cachedStations;
+    // If API fails, try to return persistent data as fallback
+    const persistentStations = await PersistentStorage.getHideoutStations();
+    if (persistentStations) {
+      return persistentStations;
     }
     
     throw error;

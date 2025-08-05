@@ -4,7 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useState, useEffect } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
 import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
-import { QuestCacheManager } from "@/services/questCache";
+import { PersistentStorage } from "@/services/persistentStorage";
 
 interface DropdownItem {
   label: string;
@@ -64,16 +64,16 @@ export default function Settings() {
 
   const handleClearCache = () => {
     Alert.alert(
-      'Clear Cache',
-      'This will clear all cached quest and trader data. The app will fetch fresh data from the API on next use.',
+      'Clear API Data',
+      'This will clear all cached API data (quests, traders, hideout). User settings will be preserved. The app will fetch fresh data from the API on next use.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Clear Cache', 
+          text: 'Clear API Data', 
           style: 'default',
           onPress: async () => {
-            await QuestCacheManager.clearAllCaches();
-            Alert.alert('Cache Cleared', 'All cached data has been cleared.');
+            await PersistentStorage.clearAllApiData();
+            Alert.alert('API Data Cleared', 'All cached API data has been cleared. User settings preserved.');
           }
         },
       ]
@@ -159,12 +159,12 @@ export default function Settings() {
           <ThemedText style={styles.resetButtonText}>Reset Quest Progress</ThemedText>
         </TouchableOpacity>
 
-        {/* Clear Cache Button */}
+        {/* Clear API Data Button */}
         <TouchableOpacity
           style={styles.cacheButton}
           onPress={handleClearCache}
         >
-          <ThemedText style={styles.cacheButtonText}>Clear Cache</ThemedText>
+          <ThemedText style={styles.cacheButtonText}>Clear API Data</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 

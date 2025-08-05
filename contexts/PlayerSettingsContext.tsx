@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PersistentStorage } from '@/services/persistentStorage';
 
 export type PMCFaction = 'USEC' | 'BEAR';
 export type GameEdition = 'Standard' | 'Left Behind' | 'Prepare for Escape' | 'Edge of Darkness';
@@ -39,7 +39,6 @@ interface PlayerSettingsProviderProps {
   children: ReactNode;
 }
 
-const STORAGE_KEY = '@player_settings';
 
 export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ children }) => {
   const [settings, setSettings] = useState<PlayerSettings>({
@@ -52,26 +51,16 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load settings from storage on startup
+  // Load settings from persistent storage on startup
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const savedSettings = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedSettings) {
-          const parsedSettings = JSON.parse(savedSettings);
-          // Migrate old settings to new format
-          const migratedSettings: PlayerSettings = {
-            level: parsedSettings.level || 1,
-            faction: parsedSettings.faction || 'USEC',
-            gameEdition: parsedSettings.gameEdition || 'Standard',
-            completedQuestIds: parsedSettings.completedQuestIds || [],
-            hideoutModuleLevels: parsedSettings.hideoutModuleLevels || {},
-            traderLevels: parsedSettings.traderLevels || {},
-          };
-          setSettings(migratedSettings);
+        const persistentSettings = await PersistentStorage.getPlayerSettings();
+        if (persistentSettings) {
+          setSettings(persistentSettings);
         }
       } catch (error) {
-        console.error('Error loading settings:', error);
+        console.error('Error loading settings from persistent storage:', error);
       } finally {
         setIsLoaded(true);
       }
@@ -80,14 +69,14 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
     loadSettings();
   }, []);
 
-  // Save settings to storage whenever they change
+  // Save settings to persistent storage whenever they change
   useEffect(() => {
     if (isLoaded) {
       const saveSettings = async () => {
         try {
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+          await PersistentStorage.storePlayerSettings(settings);
         } catch (error) {
-          console.error('Error saving settings:', error);
+          console.error('Error saving settings to persistent storage:', error);
         }
       };
 
