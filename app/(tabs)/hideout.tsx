@@ -131,10 +131,10 @@ export default function HideoutScreen() {
       <>
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Hideout Modules</ThemedText>
-          <ThemedText style={styles.subtitle}>
-            {filteredStations.length} of {allStations.length} modules
-          </ThemedText>
         </ThemedView>
+        <ThemedText style={styles.subtitle}>
+          {filteredStations.length} of {allStations.length} modules
+        </ThemedText>
 
         {/* Filter Buttons */}
         <ThemedView style={styles.filterButtonsContainer}>
@@ -188,15 +188,8 @@ export default function HideoutScreen() {
 
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="house"
-          style={styles.headerImage}
-        />
-      }
+      headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
+      headerImage={<></>}
     >
       {renderContent()}
     </ParallaxScrollView>
@@ -207,20 +200,17 @@ const screenWidth = Dimensions.get('window').width;
 const moduleCardWidth = (screenWidth - 50) / 2; // Account for padding and gap
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
   titleContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 4,
+    gap: 8,
+    marginBottom: 24,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   centerContainer: {
     flex: 1,
