@@ -39,7 +39,9 @@ export default function Quests() {
             const playerSettings = {
               level: settings.level,
               faction: settings.faction,
-              completedQuestIds: settings.completedQuestIds
+              completedQuestIds: settings.completedQuestIds,
+              traderLevels: settings.traderLevels,
+              gameEdition: settings.gameEdition
             };
             
             const filteredQuests = filterQuestsByType(traderQuests, 'available', playerSettings);
@@ -58,7 +60,7 @@ export default function Quests() {
     };
 
     loadTraders();
-  }, [settings.completedQuestIds, settings.faction, settings.level]);
+  }, [settings.completedQuestIds, settings.faction, settings.level, settings.traderLevels, settings.gameEdition]);
 
   // Re-filter quests when settings change
   useEffect(() => {
@@ -66,13 +68,15 @@ export default function Quests() {
       const playerSettings = {
         level: settings.level,
         faction: settings.faction,
-        completedQuestIds: settings.completedQuestIds
+        completedQuestIds: settings.completedQuestIds,
+        traderLevels: settings.traderLevels,
+        gameEdition: settings.gameEdition
       };
       
       const filteredQuests = filterQuestsByType(allTraderQuests, questFilter, playerSettings);
       setQuests(filteredQuests);
     }
-  }, [settings.level, settings.faction, settings.completedQuestIds, questFilter, allTraderQuests]);
+  }, [settings.level, settings.faction, settings.completedQuestIds, settings.traderLevels, settings.gameEdition, questFilter, allTraderQuests]);
 
   const handleTraderSelect = async (trader: Trader) => {
     setSelectedTrader(trader);
@@ -84,7 +88,9 @@ export default function Quests() {
       const playerSettings = {
         level: settings.level,
         faction: settings.faction,
-        completedQuestIds: settings.completedQuestIds
+        completedQuestIds: settings.completedQuestIds,
+        traderLevels: settings.traderLevels,
+        gameEdition: settings.gameEdition
       };
       
       const filteredQuests = filterQuestsByType(traderQuests, questFilter, playerSettings);
@@ -102,7 +108,9 @@ export default function Quests() {
     const playerSettings = {
       level: settings.level,
       faction: settings.faction,
-      completedQuestIds: settings.completedQuestIds
+      completedQuestIds: settings.completedQuestIds,
+      traderLevels: settings.traderLevels,
+      gameEdition: settings.gameEdition
     };
     
     const filteredQuests = filterQuestsByType(allTraderQuests, filter, playerSettings);

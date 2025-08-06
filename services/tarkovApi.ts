@@ -148,6 +148,7 @@ export const fetchKappaRequiredQuests = async (forceRefresh = false): Promise<Qu
           }
         }
         experience
+        minPlayerLevel
         traderLevelRequirements {
           trader {
             id
@@ -240,6 +241,7 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
           }
         }
         experience
+        minPlayerLevel
         traderLevelRequirements {
           trader {
             id
@@ -273,6 +275,8 @@ export const fetchQuestsByTrader = async (traderId: string, forceRefresh = false
     }
 
     const allTasks = result.data?.tasks || [];
+    
+    
     // Filter tasks by trader
     const traderQuests = allTasks.filter((task: Quest) => task.trader.id === traderId);
     
@@ -335,28 +339,60 @@ export interface PlayerSettings {
   level: number;
   faction: 'USEC' | 'BEAR';
   completedQuestIds: string[];
+  traderLevels: Record<string, number>;
+  gameEdition: 'Standard' | 'Left Behind' | 'Prepare for Escape' | 'Edge of Darkness';
 }
 
-// Hardcoded quest level requirements since API doesn't provide them
-const QUEST_LEVEL_REQUIREMENTS: Record<string, number> = {
-  'The Punisher - Part 6': 21,  // Grenadier quest
-  'Grenadier': 21,
-  'The Punisher - Part 5': 19,
-  'The Punisher - Part 4': 18,
-  'The Punisher - Part 3': 16,
-  'Tarkov Shooter - Part 8': 35,
-  'Tarkov Shooter - Part 7': 33,
-  'Tarkov Shooter - Part 6': 30,
-  'Kappa': 62,
-  'Collector': 60,
-  'Perfect Mediator': 46,
-  'The Guide': 40,
-};
+// Note: Player level requirements are now fetched from API via quest.minPlayerLevel field
 
 // Hardcoded faction requirements
 const QUEST_FACTION_REQUIREMENTS: Record<string, 'USEC' | 'BEAR'> = {
   // Most quests don't have faction requirements in Tarkov
   // Add specific ones if needed
+};
+
+// Game edition reputation bonuses
+const GAME_EDITION_BONUSES: Record<string, Record<string, number>> = {
+  'Standard': {},
+  'Left Behind': {
+    // Add specific trader bonuses for Left Behind edition
+  },
+  'Prepare for Escape': {
+    // Add specific trader bonuses for Prepare for Escape edition  
+  },
+  'Edge of Darkness': {
+    // Edge of Darkness gets +0.20 reputation with all traders
+    'Prapor': 0.20,
+    'Therapist': 0.20,
+    'Fence': 0.20,
+    'Skier': 0.20,
+    'Peacekeeper': 0.20,
+    'Mechanic': 0.20,
+    'Ragman': 0.20,
+    'Jaeger': 0.20
+  }
+};
+
+/**
+ * Get effective trader level including game edition bonuses
+ * @param traderId - The trader ID 
+ * @param traderName - The trader name
+ * @param playerSettings - Player settings including trader levels and game edition
+ * @returns The effective trader level (base level + bonuses)
+ */
+const getEffectiveTraderLevel = (
+  traderId: string, 
+  traderName: string, 
+  playerSettings: PlayerSettings
+): number => {
+  const baseLevel = playerSettings.traderLevels[traderId] || 1;
+  const editionBonus = GAME_EDITION_BONUSES[playerSettings.gameEdition]?.[traderName] || 0;
+  
+  // Convert reputation bonus to level equivalence (rough approximation)
+  // In Tarkov, each trader level typically requires ~0.20-0.30 reputation increase
+  const bonusLevels = Math.floor(editionBonus / 0.20);
+  
+  return baseLevel + bonusLevels;
 };
 
 export const filterQuestsByType = (
@@ -365,6 +401,7 @@ export const filterQuestsByType = (
   playerSettings: PlayerSettings
 ): Quest[] => {
   const { level, faction, completedQuestIds } = playerSettings;
+  
   
   return quests.filter(quest => {
     const isCompleted = completedQuestIds.includes(quest.id);
@@ -382,19 +419,22 @@ export const filterQuestsByType = (
       );
       
       // Check trader level requirements
-      const hasTraderLevelRequirement = quest.traderLevelRequirements.every(() => {
-        // For now, assume player meets trader level requirements
-        // This would need actual trader level data from player settings
-        return true;
+      const hasTraderLevelRequirement = quest.traderLevelRequirements.every(requirement => {
+        const effectiveTraderLevel = getEffectiveTraderLevel(
+          requirement.trader.id, 
+          requirement.trader.name, 
+          playerSettings
+        );
+        return effectiveTraderLevel >= requirement.level;
       });
       
-      // Check player level requirement using hardcoded mapping
-      const requiredLevel = QUEST_LEVEL_REQUIREMENTS[quest.name];
-      const meetsLevelRequirement = !requiredLevel || level >= requiredLevel;
+      // Check player level requirement from API data
+      const meetsLevelRequirement = !quest.minPlayerLevel || level >= quest.minPlayerLevel;
       
       // Check faction requirement using hardcoded mapping
       const requiredFaction = QUEST_FACTION_REQUIREMENTS[quest.name];
       const meetsFactionRequirement = !requiredFaction || faction === requiredFaction;
+      
       
       return hasQuestPrerequisites && hasTraderLevelRequirement && 
              meetsLevelRequirement && meetsFactionRequirement;
@@ -408,9 +448,8 @@ export const filterQuestsByType = (
         completedQuestIds.includes(requirement.task.id)
       );
       
-      // Check level/faction requirements using hardcoded mapping
-      const requiredLevel = QUEST_LEVEL_REQUIREMENTS[quest.name];
-      const meetsLevelRequirement = !requiredLevel || level >= requiredLevel;
+      // Check level/faction requirements from API data
+      const meetsLevelRequirement = !quest.minPlayerLevel || level >= quest.minPlayerLevel;
       
       const requiredFaction = QUEST_FACTION_REQUIREMENTS[quest.name];
       const meetsFactionRequirement = !requiredFaction || faction === requiredFaction;
@@ -514,7 +553,9 @@ export const filterAvailableQuests = (quests: Quest[], completedQuestIds: string
   return filterQuestsByType(quests, 'available', {
     level: 1,
     faction: 'USEC',
-    completedQuestIds
+    completedQuestIds,
+    traderLevels: {},
+    gameEdition: 'Standard'
   });
 };
 

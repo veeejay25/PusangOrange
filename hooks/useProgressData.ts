@@ -69,6 +69,7 @@ export const useProgressData = () => {
                     }
                   }
                   experience
+                  minPlayerLevel
                   traderLevelRequirements {
                     trader {
                       id
