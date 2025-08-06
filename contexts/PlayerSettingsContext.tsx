@@ -8,6 +8,7 @@ export interface PlayerSettings {
   level: number;
   faction: PMCFaction;
   gameEdition: GameEdition;
+  playerName: string;
   completedQuestIds: string[];
   hideoutModuleLevels: Record<string, number>; // module id -> current level
   traderLevels: Record<string, number>; // trader id -> current level
@@ -18,6 +19,7 @@ interface PlayerSettingsContextType {
   updateLevel: (level: number) => void;
   updateFaction: (faction: PMCFaction) => void;
   updateGameEdition: (edition: GameEdition) => void;
+  updatePlayerName: (name: string) => void;
   addCompletedQuest: (questId: string) => void;
   removeCompletedQuest: (questId: string) => void;
   updateHideoutModuleLevel: (moduleId: string, level: number) => void;
@@ -45,6 +47,7 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
     level: 1,
     faction: 'USEC',
     gameEdition: 'Standard',
+    playerName: 'Pusang Orange',
     completedQuestIds: [],
     hideoutModuleLevels: {},
     traderLevels: {},
@@ -57,7 +60,12 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
       try {
         const persistentSettings = await PersistentStorage.getPlayerSettings();
         if (persistentSettings) {
-          setSettings(persistentSettings);
+          // Handle backwards compatibility - ensure playerName exists
+          const migratedSettings = {
+            ...persistentSettings,
+            playerName: persistentSettings.playerName || 'Pusang Orange'
+          };
+          setSettings(migratedSettings);
         }
       } catch (error) {
         console.error('Error loading settings from persistent storage:', error);
@@ -94,6 +102,10 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
 
   const updateGameEdition = (gameEdition: GameEdition) => {
     setSettings(prev => ({ ...prev, gameEdition }));
+  };
+
+  const updatePlayerName = (playerName: string) => {
+    setSettings(prev => ({ ...prev, playerName }));
   };
 
   const addCompletedQuest = (questId: string) => {
@@ -146,6 +158,7 @@ export const PlayerSettingsProvider: React.FC<PlayerSettingsProviderProps> = ({ 
         updateLevel,
         updateFaction,
         updateGameEdition,
+        updatePlayerName,
         addCompletedQuest,
         removeCompletedQuest,
         updateHideoutModuleLevel,

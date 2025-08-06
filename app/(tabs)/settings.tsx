@@ -24,15 +24,17 @@ const GAME_EDITIONS: DropdownItem[] = [
 ];
 
 export default function Settings() {
-  const { settings, updateLevel, updateFaction, updateGameEdition, resetProgress } = usePlayerSettings();
+  const { settings, updateLevel, updateFaction, updateGameEdition, updatePlayerName, resetProgress } = usePlayerSettings();
   const [levelInput, setLevelInput] = useState<string>(settings.level.toString());
+  const [playerNameInput, setPlayerNameInput] = useState<string>(settings.playerName);
   const [factionModalVisible, setFactionModalVisible] = useState(false);
   const [editionModalVisible, setEditionModalVisible] = useState(false);
 
-  // Update level input when settings change (e.g., when loaded from storage)
+  // Update inputs when settings change (e.g., when loaded from storage)
   useEffect(() => {
     setLevelInput(settings.level.toString());
-  }, [settings.level]);
+    setPlayerNameInput(settings.playerName);
+  }, [settings.level, settings.playerName]);
 
   const handleLevelChange = (text: string) => {
     const numericValue = text.replace(/[^0-9]/g, '');
@@ -42,6 +44,12 @@ export default function Settings() {
         updateLevel(parseInt(numericValue));
       }
     }
+  };
+
+  const handlePlayerNameChange = (text: string) => {
+    const trimmedText = text.slice(0, 30); // Limit to 30 characters
+    setPlayerNameInput(trimmedText);
+    updatePlayerName(trimmedText);
   };
 
   const handleResetProgress = () => {
@@ -107,13 +115,28 @@ export default function Settings() {
       </ThemedView>
 
       <ThemedView style={styles.settingsContainer}>
+        {/* Player Name */}
+        <ThemedView style={styles.settingItem}>
+          <ThemedText type="subtitle" style={styles.settingLabel}>
+            Player Name
+          </ThemedText>
+          <TextInput
+            style={styles.textInput}
+            value={playerNameInput}
+            onChangeText={handlePlayerNameChange}
+            placeholder="Enter your player name"
+            placeholderTextColor="#666"
+            maxLength={30}
+          />
+        </ThemedView>
+
         {/* Player Level */}
         <ThemedView style={styles.settingItem}>
           <ThemedText type="subtitle" style={styles.settingLabel}>
             Player Level
           </ThemedText>
           <TextInput
-            style={styles.levelInput}
+            style={styles.textInput}
             value={levelInput}
             onChangeText={handleLevelChange}
             keyboardType="numeric"
@@ -239,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
-  levelInput: {
+  textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,

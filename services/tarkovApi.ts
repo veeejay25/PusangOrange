@@ -338,6 +338,7 @@ export interface HideoutStationsResponse {
 export interface PlayerSettings {
   level: number;
   faction: 'USEC' | 'BEAR';
+  playerName: string;
   completedQuestIds: string[];
   traderLevels: Record<string, number>;
   gameEdition: 'Standard' | 'Left Behind' | 'Prepare for Escape' | 'Edge of Darkness';
@@ -553,6 +554,7 @@ export const filterAvailableQuests = (quests: Quest[], completedQuestIds: string
   return filterQuestsByType(quests, 'available', {
     level: 1,
     faction: 'USEC',
+    playerName: 'Player',
     completedQuestIds,
     traderLevels: {},
     gameEdition: 'Standard'

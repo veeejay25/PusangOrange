@@ -6,9 +6,11 @@ import { useState } from "react";
 import { StyleSheet, ActivityIndicator } from "react-native";
 import FlexibleTracker from "../../components/ProgressTracker";
 import { useProgressData } from "@/hooks/useProgressData";
+import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
 
 export default function Profile() {
   const { questProgress, kappaProgress, hideoutProgress, isLoading, error } = useProgressData();
+  const { settings } = usePlayerSettings();
   const [isKappaMode, setIsKappaMode] = useState(false);
 
   const handleEftToggle = () => {
@@ -59,7 +61,7 @@ export default function Profile() {
 
       {/* Username */}
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Pusang Orange</ThemedText>
+        <ThemedText type="title">{settings.playerName}</ThemedText>
       </ThemedView>
 
       {/* Trackers Section */}

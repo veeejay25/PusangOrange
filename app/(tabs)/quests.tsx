@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function Quests() {
-  const { settings } = usePlayerSettings();
+  const { settings, addCompletedQuest, removeCompletedQuest } = usePlayerSettings();
   const [traders, setTraders] = useState<Trader[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +39,7 @@ export default function Quests() {
             const playerSettings = {
               level: settings.level,
               faction: settings.faction,
+              playerName: settings.playerName,
               completedQuestIds: settings.completedQuestIds,
               traderLevels: settings.traderLevels,
               gameEdition: settings.gameEdition
@@ -60,7 +61,7 @@ export default function Quests() {
     };
 
     loadTraders();
-  }, [settings.completedQuestIds, settings.faction, settings.level, settings.traderLevels, settings.gameEdition]);
+  }, [settings.completedQuestIds, settings.faction, settings.level, settings.traderLevels, settings.gameEdition, settings.playerName]);
 
   // Re-filter quests when settings change
   useEffect(() => {
@@ -68,6 +69,7 @@ export default function Quests() {
       const playerSettings = {
         level: settings.level,
         faction: settings.faction,
+        playerName: settings.playerName,
         completedQuestIds: settings.completedQuestIds,
         traderLevels: settings.traderLevels,
         gameEdition: settings.gameEdition
@@ -76,7 +78,7 @@ export default function Quests() {
       const filteredQuests = filterQuestsByType(allTraderQuests, questFilter, playerSettings);
       setQuests(filteredQuests);
     }
-  }, [settings.level, settings.faction, settings.completedQuestIds, settings.traderLevels, settings.gameEdition, questFilter, allTraderQuests]);
+  }, [settings.level, settings.faction, settings.completedQuestIds, settings.traderLevels, settings.gameEdition, settings.playerName, questFilter, allTraderQuests]);
 
   const handleTraderSelect = async (trader: Trader) => {
     setSelectedTrader(trader);
@@ -88,6 +90,7 @@ export default function Quests() {
       const playerSettings = {
         level: settings.level,
         faction: settings.faction,
+        playerName: settings.playerName,
         completedQuestIds: settings.completedQuestIds,
         traderLevels: settings.traderLevels,
         gameEdition: settings.gameEdition
@@ -108,6 +111,7 @@ export default function Quests() {
     const playerSettings = {
       level: settings.level,
       faction: settings.faction,
+      playerName: settings.playerName,
       completedQuestIds: settings.completedQuestIds,
       traderLevels: settings.traderLevels,
       gameEdition: settings.gameEdition
@@ -135,33 +139,55 @@ export default function Quests() {
     </TouchableOpacity>
   );
 
-  const renderQuest = ({ item }: { item: Quest }) => (
-    <ThemedView style={styles.questItem}>
-      <View style={styles.questHeader}>
-        <ThemedText type="defaultSemiBold" style={styles.questTitle}>
-          {item.name}
-        </ThemedText>
-        {isKappaQuest(item) && (
-          <View style={styles.kappaBanner}>
-            <ThemedText style={styles.kappaText}>KAPPA</ThemedText>
+  const handleQuestCompletion = (questId: string, isCompleted: boolean) => {
+    if (isCompleted) {
+      addCompletedQuest(questId);
+    } else {
+      removeCompletedQuest(questId);
+    }
+  };
+
+  const renderQuest = ({ item }: { item: Quest }) => {
+    const isCompleted = settings.completedQuestIds.includes(item.id);
+    
+    return (
+      <ThemedView style={styles.questItem}>
+        <View style={styles.questHeader}>
+          <ThemedText type="defaultSemiBold" style={styles.questTitle}>
+            {item.name}
+          </ThemedText>
+          <View style={styles.questActions}>
+            {isKappaQuest(item) && (
+              <View style={styles.kappaBanner}>
+                <ThemedText style={styles.kappaText}>KAPPA</ThemedText>
+              </View>
+            )}
+            <TouchableOpacity
+              style={[styles.completionButton, isCompleted && styles.completionButtonCompleted]}
+              onPress={() => handleQuestCompletion(item.id, !isCompleted)}
+            >
+              <ThemedText style={[styles.completionButtonText, isCompleted && styles.completionButtonTextCompleted]}>
+                {isCompleted ? '✓' : '○'}
+              </ThemedText>
+            </TouchableOpacity>
           </View>
+        </View>
+        <ThemedText style={styles.questExperience}>
+          {item.experience} XP
+        </ThemedText>
+        {item.objectives.slice(0, 2).map((objective) => (
+          <ThemedText key={objective.id} style={styles.questObjective}>
+            • {objective.description}
+          </ThemedText>
+        ))}
+        {item.objectives.length > 2 && (
+          <ThemedText style={styles.moreObjectives}>
+            +{item.objectives.length - 2} more objectives
+          </ThemedText>
         )}
-      </View>
-      <ThemedText style={styles.questExperience}>
-        {item.experience} XP
-      </ThemedText>
-      {item.objectives.slice(0, 2).map((objective) => (
-        <ThemedText key={objective.id} style={styles.questObjective}>
-          • {objective.description}
-        </ThemedText>
-      ))}
-      {item.objectives.length > 2 && (
-        <ThemedText style={styles.moreObjectives}>
-          +{item.objectives.length - 2} more objectives
-        </ThemedText>
-      )}
-    </ThemedView>
-  );
+      </ThemedView>
+    );
+  };
 
   return (
     <ParallaxScrollView
@@ -356,6 +382,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 8,
   },
+  questActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   questTitle: {
     fontSize: 16,
     flex: 1,
@@ -427,6 +458,28 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   filterButtonTextActive: {
+    color: "white",
+  },
+  completionButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    borderWidth: 2,
+    borderColor: "rgba(0, 0, 0, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  completionButtonCompleted: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
+  },
+  completionButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "rgba(0, 0, 0, 0.5)",
+  },
+  completionButtonTextCompleted: {
     color: "white",
   },
 });

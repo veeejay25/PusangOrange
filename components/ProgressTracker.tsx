@@ -129,8 +129,11 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
   // Progress Animation Logic
   useEffect(() => {
     if (showProgressBar && animateProgress) {
+      // Reset animation value and animate to the target percentage
+      progressAnimation.setValue(0);
+      
       const animation = Animated.timing(progressAnimation, {
-        toValue: maxProgress,
+        toValue: maxProgress, // maxProgress is already a percentage (0-100)
         duration: animationDuration,
         useNativeDriver: false,
       });
@@ -142,7 +145,7 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
       });
 
       const listener = progressAnimation.addListener(({ value }) => {
-        const calculatedProgress = Math.round((value / maxProgress) * 100);
+        const calculatedProgress = Math.round(value);
         setCurrentProgress(calculatedProgress);
         onProgressChange?.(calculatedProgress);
       });
@@ -151,6 +154,10 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
         progressAnimation.removeListener(listener);
         animation.stop();
       };
+    } else {
+      // If animation is disabled, directly set the progress
+      setCurrentProgress(maxProgress);
+      progressAnimation.setValue(maxProgress);
     }
   }, [
     showProgressBar,
@@ -171,8 +178,9 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
 
   // Progress Width Interpolation
   const progressWidth = progressAnimation.interpolate({
-    inputRange: [0, maxProgress],
+    inputRange: [0, 100], // Always interpolate from 0 to 100 since maxProgress is a percentage
     outputRange: ["0%", "100%"],
+    extrapolate: 'clamp',
   });
 
   // Dynamic colors based on state

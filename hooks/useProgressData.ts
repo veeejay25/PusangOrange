@@ -118,7 +118,7 @@ export const useProgressData = () => {
     };
 
     loadProgressData();
-  }, [settings.completedQuestIds, settings.hideoutModuleLevels]);
+  }, [settings.completedQuestIds, settings.hideoutModuleLevels, settings.level, settings.faction, settings.traderLevels, settings.gameEdition]);
 
   // Recalculate progress when settings change without refetching data
   useEffect(() => {
@@ -134,7 +134,7 @@ export const useProgressData = () => {
         hideoutProgress,
       }));
     }
-  }, [settings.completedQuestIds, settings.hideoutModuleLevels, allQuests, allStations, progressData.isLoading]);
+  }, [settings.completedQuestIds, settings.hideoutModuleLevels, settings.level, settings.faction, settings.traderLevels, settings.gameEdition, allQuests, allStations, progressData.isLoading]);
 
   return progressData;
 };
