@@ -374,6 +374,23 @@ const GAME_EDITION_BONUSES: Record<string, Record<string, number>> = {
   }
 };
 
+// Game edition hideout bonuses (starting module levels)
+const HIDEOUT_EDITION_BONUSES: Record<string, Record<string, number>> = {
+  'Standard': {},
+  'Left Behind': {
+    // Stash level 2
+    'Stash': 2
+  },
+  'Prepare for Escape': {
+    // Stash level 3
+    'Stash': 3
+  },
+  'Edge of Darkness': {
+    // Stash level 4 (maximum)
+    'Stash': 4
+  }
+};
+
 /**
  * Get effective trader level including game edition bonuses
  * @param traderId - The trader ID 
@@ -394,6 +411,134 @@ const getEffectiveTraderLevel = (
   const bonusLevels = Math.floor(editionBonus / 0.20);
   
   return baseLevel + bonusLevels;
+};
+
+/**
+ * Get effective hideout module level including game edition bonuses
+ * @param stationId - The hideout station ID
+ * @param stationName - The hideout station name  
+ * @param playerSettings - Player settings including hideout module levels and game edition
+ * @returns The effective module level (base level + edition bonus)
+ */
+export const getEffectiveHideoutLevel = (
+  stationId: string,
+  stationName: string,
+  playerSettings: PlayerSettings & { hideoutModuleLevels: Record<string, number> }
+): number => {
+  // Get level by ID (which is how hideoutModuleLevels is indexed)
+  const baseLevel = playerSettings.hideoutModuleLevels[stationId] || 0;
+  
+  // For edition bonuses, we use the station name
+  const editionBonus = HIDEOUT_EDITION_BONUSES[playerSettings.gameEdition]?.[stationName] || 0;
+  
+  // Return the maximum of base level and edition bonus
+  // This ensures that edition bonuses provide starting levels, not additional levels
+  return Math.max(baseLevel, editionBonus);
+};
+
+/**
+ * Check if a hideout station can be upgraded to the next level
+ * @param station - The hideout station to check
+ * @param currentLevel - The current level of the station
+ * @param playerSettings - Player settings including hideout module levels, trader levels, and game edition
+ * @returns True if the station can be upgraded, false otherwise
+ */
+export const canUpgradeHideoutStation = (
+  station: HideoutStation,
+  currentLevel: number,
+  playerSettings: {
+    level: number;
+    hideoutModuleLevels: Record<string, number>;
+    traderLevels: Record<string, number>;
+    gameEdition: string;
+  }
+): boolean => {
+  const maxLevel = station.levels.length;
+  const effectiveLevel = getEffectiveHideoutLevel(station.id, station.name, playerSettings as any);
+  const displayLevel = Math.max(currentLevel, effectiveLevel);
+  
+  // Can't upgrade if already at max level
+  if (displayLevel >= maxLevel) return false;
+  
+  // Get the next level requirements
+  const nextLevel = displayLevel + 1;
+  const nextLevelData = station.levels.find(l => l.level === nextLevel);
+  
+  if (!nextLevelData) return false;
+  
+  // Check station level requirements
+  const hasStationRequirements = nextLevelData.stationLevelRequirements.every(req => {
+    const requiredStationLevel = getEffectiveHideoutLevel(req.station.id, req.station.name, playerSettings as any);
+    return requiredStationLevel >= req.level;
+  });
+  
+  // Check trader level requirements
+  const hasTraderRequirements = nextLevelData.traderRequirements.every(req => {
+    const currentTraderLevel = playerSettings.traderLevels[req.trader.id] || 1;
+    return currentTraderLevel >= req.level;
+  });
+  
+  return hasStationRequirements && hasTraderRequirements;
+};
+
+/**
+ * Get missing requirements for upgrading a hideout station
+ * @param station - The hideout station to check
+ * @param currentLevel - The current level of the station
+ * @param playerSettings - Player settings including hideout module levels, trader levels, and game edition
+ * @returns Array of missing requirements
+ */
+export const getMissingHideoutRequirements = (
+  station: HideoutStation,
+  currentLevel: number,
+  playerSettings: {
+    level: number;
+    hideoutModuleLevels: Record<string, number>;
+    traderLevels: Record<string, number>;
+    gameEdition: string;
+  }
+): { type: 'station' | 'trader'; name: string; required: number; current: number }[] => {
+  const maxLevel = station.levels.length;
+  const effectiveLevel = getEffectiveHideoutLevel(station.id, station.name, playerSettings as any);
+  const displayLevel = Math.max(currentLevel, effectiveLevel);
+  
+  // Already at max level or can upgrade
+  if (displayLevel >= maxLevel) return [];
+  
+  const nextLevel = displayLevel + 1;
+  const nextLevelData = station.levels.find(l => l.level === nextLevel);
+  
+  if (!nextLevelData) return [];
+  
+  const missingRequirements: { type: 'station' | 'trader'; name: string; required: number; current: number }[] = [];
+  
+  // Check missing station requirements
+  nextLevelData.stationLevelRequirements.forEach(req => {
+    const requiredStationLevel = getEffectiveHideoutLevel(req.station.id, req.station.name, playerSettings as any);
+    if (requiredStationLevel < req.level) {
+      missingRequirements.push({
+        type: 'station',
+        name: req.station.name,
+        required: req.level,
+        current: requiredStationLevel
+      });
+    }
+  });
+  
+  // Check missing trader requirements
+  nextLevelData.traderRequirements.forEach(req => {
+    const currentTraderLevel = playerSettings.traderLevels[req.trader.id] || 1;
+    if (currentTraderLevel < req.level) {
+      missingRequirements.push({
+        type: 'trader',
+        name: req.trader.name,
+        required: req.level,
+        current: currentTraderLevel
+      });
+    }
+  });
+  
+  return missingRequirements;
 };
 
 export const filterQuestsByType = (
@@ -568,31 +713,36 @@ export const filterHideoutModulesByType = (
     level: number;
     hideoutModuleLevels: Record<string, number>;
     traderLevels: Record<string, number>;
+    gameEdition: string;
   }
 ): HideoutStation[] => {
-  const { hideoutModuleLevels, traderLevels } = playerSettings;
+  const { traderLevels, hideoutModuleLevels } = playerSettings;
 
   return stations.filter(station => {
-    const currentModuleLevel = hideoutModuleLevels[station.id] || 0;
+    // Use actual player level, not effective level for filtering logic
+    const actualModuleLevel = hideoutModuleLevels[station.id] || 0;
+    const effectiveLevel = getEffectiveHideoutLevel(station.id, station.name, playerSettings as any);
+    const displayLevel = Math.max(actualModuleLevel, effectiveLevel);
     const maxLevel = station.levels.length;
     
     if (type === 'maxed') {
-      return currentModuleLevel >= maxLevel;
+      return displayLevel >= maxLevel;
     }
     
     if (type === 'available') {
       // Module is maxed, so not available for upgrade
-      if (currentModuleLevel >= maxLevel) return false;
+      if (displayLevel >= maxLevel) return false;
       
-      // Get the next level requirements (currentLevel + 1)
-      const nextLevel = currentModuleLevel + 1;
+      // For available, check if we can upgrade from the actual level (not display level)
+      // This ensures that edition bonuses don't make things "available" when they shouldn't be
+      const nextLevel = actualModuleLevel + 1;
       const nextLevelData = station.levels.find(l => l.level === nextLevel);
       
       if (!nextLevelData) return false;
       
       // Check station level requirements
       const hasStationRequirements = nextLevelData.stationLevelRequirements.every(req => {
-        const requiredStationLevel = hideoutModuleLevels[req.station.id] || 0;
+        const requiredStationLevel = getEffectiveHideoutLevel(req.station.id, req.station.name, playerSettings as any);
         return requiredStationLevel >= req.level;
       });
       
@@ -607,17 +757,17 @@ export const filterHideoutModulesByType = (
     
     if (type === 'locked') {
       // Module is maxed, so not locked
-      if (currentModuleLevel >= maxLevel) return false;
+      if (displayLevel >= maxLevel) return false;
       
-      // Get the next level requirements
-      const nextLevel = currentModuleLevel + 1;
+      // Check if the next level from actual level is locked
+      const nextLevel = actualModuleLevel + 1;
       const nextLevelData = station.levels.find(l => l.level === nextLevel);
       
       if (!nextLevelData) return true; // No next level data means locked
       
       // Check if any requirements are not met
       const hasStationRequirements = nextLevelData.stationLevelRequirements.every(req => {
-        const requiredStationLevel = hideoutModuleLevels[req.station.id] || 0;
+        const requiredStationLevel = getEffectiveHideoutLevel(req.station.id, req.station.name, playerSettings as any);
         return requiredStationLevel >= req.level;
       });
       
