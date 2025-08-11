@@ -12,6 +12,24 @@ export interface TraderResponse {
   traders: Trader[];
 }
 
+export interface ItemUsage {
+  stationName?: string;
+  stationLevel?: number;
+  questName?: string;
+  traderName?: string;
+  quantity: number;
+}
+
+export interface Item {
+  id: string;
+  name: string;
+  iconLink?: string;
+  totalQuantity: number;
+  foundInRaid: boolean;
+  source: 'hideout' | 'quest' | 'mixed';
+  usages: ItemUsage[];
+}
+
 export interface Quest {
   id: string;
   name: string;
@@ -704,6 +722,120 @@ export const filterAvailableQuests = (quests: Quest[], completedQuestIds: string
     traderLevels: {},
     gameEdition: 'Standard'
   });
+};
+
+export const fetchAllItems = async (playerSettings?: {
+  hideoutModuleLevels: Record<string, number>;
+  completedQuestIds: string[];
+}): Promise<Item[]> => {
+  try {
+    const [hideoutStations, traders] = await Promise.all([
+      fetchHideoutStations(),
+      fetchTraders()
+    ]);
+    
+    // Use a map to combine items by their actual item ID
+    const itemMap = new Map<string, Item>();
+    
+    // Get hideout items from station requirements
+    hideoutStations.forEach((station: HideoutStation) => {
+      station.levels.forEach(level => {
+        // Skip this level if player already has it or higher
+        const currentStationLevel = playerSettings?.hideoutModuleLevels[station.id] || 0;
+        if (currentStationLevel >= level.level) {
+          return; // Skip this level as it's already completed
+        }
+        
+        level.itemRequirements.forEach(itemReq => {
+          const itemId = itemReq.item.id;
+          const usage: ItemUsage = {
+            stationName: station.name,
+            stationLevel: level.level,
+            quantity: itemReq.count
+          };
+          
+          if (itemMap.has(itemId)) {
+            const existingItem = itemMap.get(itemId)!;
+            existingItem.totalQuantity += itemReq.count;
+            existingItem.usages.push(usage);
+            // Update source to mixed if it was previously quest-only
+            if (existingItem.source === 'quest') {
+              existingItem.source = 'mixed';
+            }
+          } else {
+            itemMap.set(itemId, {
+              id: itemId,
+              name: itemReq.item.name,
+              iconLink: itemReq.item.iconLink,
+              totalQuantity: itemReq.count,
+              foundInRaid: false,
+              source: 'hideout',
+              usages: [usage]
+            });
+          }
+        });
+      });
+    });
+    
+    // Get quest items from all traders
+    const questPromises = traders.map(async (trader: Trader) => {
+      try {
+        const quests = await fetchQuestsByTrader(trader.id);
+        return { trader, quests };
+      } catch (err) {
+        console.error(`Failed to fetch quests for ${trader.name}:`, err);
+        return { trader, quests: [] };
+      }
+    });
+    
+    const traderQuests = await Promise.all(questPromises);
+    
+    traderQuests.forEach(({ trader, quests }) => {
+      quests.forEach((quest: Quest) => {
+        // Skip completed quests
+        if (playerSettings?.completedQuestIds.includes(quest.id)) {
+          return; // Skip this quest as it's already completed
+        }
+        
+        // Check if quest has item-related objectives
+        quest.objectives.forEach(objective => {
+          if (objective.type === 'findInRaid' || 
+              objective.type === 'giveItem' ||
+              objective.description.toLowerCase().includes('find') ||
+              objective.description.toLowerCase().includes('hand over') ||
+              objective.description.toLowerCase().includes('turn in')) {
+            
+            // For quest items, use a generated ID since we don't have actual item IDs
+            const questItemId = `quest-${quest.id}-${objective.id}`;
+            let itemName = objective.description;
+            const foundInRaid = objective.type === 'findInRaid' || 
+                               objective.description.toLowerCase().includes('found in raid');
+            
+            const usage: ItemUsage = {
+              questName: quest.name,
+              traderName: trader.name,
+              quantity: 1
+            };
+            
+            // For quest items, we'll create separate entries since they don't have consistent item IDs
+            itemMap.set(questItemId, {
+              id: questItemId,
+              name: itemName.length > 50 ? `${itemName.substring(0, 47)}...` : itemName,
+              totalQuantity: 1,
+              foundInRaid,
+              source: 'quest',
+              usages: [usage]
+            });
+          }
+        });
+      });
+    });
+    
+    return Array.from(itemMap.values());
+  } catch (error) {
+    console.error('Error fetching all items:', error);
+    throw error;
+  }
 };
 
 export const filterHideoutModulesByType = (
