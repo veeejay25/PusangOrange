@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, StyleSheet, TouchableOpacity, View, Alert } from "react-native";
+import { AppColors, Spacing } from '@/constants/Colors';
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
@@ -180,7 +181,7 @@ export default function HideoutScreen() {
     if (loading) {
       return (
         <ThemedView style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#ff5733" />
+          <ActivityIndicator size="large" color={AppColors.primary} />
           <ThemedText style={styles.loadingText}>Loading hideout modules...</ThemedText>
         </ThemedView>
       );
@@ -209,9 +210,6 @@ export default function HideoutScreen() {
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Hideout Modules</ThemedText>
         </ThemedView>
-        <ThemedText style={styles.subtitle}>
-          {filteredStations.length} of {allStations.length} modules
-        </ThemedText>
 
         {/* Filter Buttons */}
         <ThemedView style={styles.filterButtonsContainer}>
@@ -240,6 +238,10 @@ export default function HideoutScreen() {
             </ThemedText>
           </TouchableOpacity>
         </ThemedView>
+
+        <ThemedText style={styles.subtitle}>
+          {filteredStations.length} of {allStations.length} modules
+        </ThemedText>
 
         <View style={styles.moduleGrid}>
           {filteredStations.length > 0 ? (
@@ -281,14 +283,13 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
+    gap: Spacing.defaultGap,
+    marginLeft: Spacing.titleContainerLeft,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
     textAlign: 'center',
-    marginBottom: 20,
   },
   centerContainer: {
     flex: 1,
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#ff5733',
+    color: AppColors.error,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
@@ -317,17 +318,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginLeft: -30,
-    marginRight: -30 // Adjust for card width
+    marginHorizontal: Spacing.containerHorizontal
   },
   moduleCard: {
     width: moduleCardWidth,
     height: moduleCardWidth + 20, // Extra height for controls
-    backgroundColor: '#ebebeb',
+    backgroundColor: AppColors.cardBackground,
     borderRadius: 8,
     padding: 8,
-    marginBottom: 12,
-    shadowColor: '#c2c2c2',
+    marginBottom: 10,
+    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   moduleImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#ebebeb',
+    backgroundColor: AppColors.cardBackground,
   },
   placeholderImage: {
     width: '100%',
@@ -359,20 +359,20 @@ const styles = StyleSheet.create({
   },
   moduleName: {
     fontSize: 12,
-    color: '#333',
+    color: AppColors.textPrimary,
     lineHeight: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   moduleDetails: {
     fontSize: 10,
-    color: '#666',
+    color: AppColors.textSecondary,
     lineHeight: 14,
     textAlign: 'center',
   },
   moduleRequirements: {
     fontSize: 9,
-    color: '#888',
+    color: AppColors.textTertiary,
     lineHeight: 12,
     textAlign: 'center',
   },
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   upgradeButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: AppColors.success,
   },
   downgradeButton: {
     backgroundColor: '#f44336',
@@ -411,24 +411,23 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   filterButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-around",
     paddingHorizontal: 16,
     gap: 8,
+    marginHorizontal: Spacing.containerHorizontal
   },
   filterButton: {
     flex: 1,
-    paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: AppColors.filterInactive,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    alignItems: 'center',
+    borderColor: AppColors.filterInactiveBorder,
+    alignItems: "center",
   },
   filterButtonActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: AppColors.success,
+    borderColor: AppColors.success,
   },
   filterButtonText: {
     fontSize: 14,

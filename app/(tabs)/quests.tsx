@@ -7,6 +7,7 @@ import { isKappaQuest } from "@/utils/progressCalculator";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { AppColors, Spacing } from '@/constants/Colors';
 
 export default function Quests() {
   const { settings, addCompletedQuest, removeCompletedQuest } = usePlayerSettings();
@@ -285,12 +286,8 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 24,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+    gap: Spacing.defaultGap,
+    marginLeft: Spacing.titleContainerLeft,
   },
   reactLogo: {
     height: 178,
@@ -306,21 +303,19 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: "red",
+    color: AppColors.error,
     textAlign: "center",
   },
   traderList: {
-    marginVertical: 10,
-    marginHorizontal: -30,
+    marginHorizontal: Spacing.containerHorizontal,
   },
   traderListContent: {
     paddingHorizontal: 16,
   },
   traderItem: {
     padding: 15,
-    marginVertical: 5,
     borderRadius: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    backgroundColor: AppColors.filterInactive,
   },
   traderStory: {
     alignItems: "center",
@@ -350,7 +345,6 @@ const styles = StyleSheet.create({
   traderName: {
     fontSize: 12,
     textAlign: "center",
-    marginTop: 4,
     maxWidth: 80,
   },
   selectedTrader: {
@@ -361,26 +355,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   questsTitle: {
-    marginBottom: 16,
-    marginLeft: -30,
+    marginBottom: 10,
+    marginLeft: Spacing.containerHorizontal,
   },
   questsList: {
     flex: 1,
-    marginHorizontal: -30,
+    marginHorizontal: Spacing.containerHorizontal,
   },
   questItem: {
     padding: 16,
-    marginVertical: 8,
+    marginVertical: 5,
     borderRadius: 12,
     backgroundColor: "rgba(0, 0, 0, 0.05)",
     borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
+    borderColor: AppColors.filterInactiveBorder,
   },
   questHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   questActions: {
     flexDirection: "row",
@@ -413,7 +407,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#4CAF50",
     fontWeight: "600",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   questObjective: {
     fontSize: 13,
@@ -434,7 +428,7 @@ const styles = StyleSheet.create({
   filterButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 16,
+    marginBottom: 10,
     paddingHorizontal: 16,
     gap: 8,
     marginLeft: -45,
@@ -443,15 +437,14 @@ const styles = StyleSheet.create({
   filterButton: {
     flex: 1,
     borderRadius: 20,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    backgroundColor: AppColors.filterInactive,
     borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.2)",
+    borderColor: AppColors.filterInactiveBorder,
     alignItems: "center",
-
   },
   filterButtonActive: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: AppColors.success,
+    borderColor: AppColors.success,
   },
   filterButtonText: {
     fontSize: 14,
@@ -464,15 +457,15 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    backgroundColor: AppColors.filterInactive,
     borderWidth: 2,
-    borderColor: "rgba(0, 0, 0, 0.2)",
+    borderColor: AppColors.filterInactiveBorder,
     justifyContent: "center",
     alignItems: "center",
   },
   completionButtonCompleted: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: AppColors.success,
+    borderColor: AppColors.success,
   },
   completionButtonText: {
     fontSize: 16,

@@ -4,6 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { StyleSheet, ActivityIndicator } from "react-native";
+import { AppColors, Spacing } from '@/constants/Colors';
 import FlexibleTracker from "../../components/ProgressTracker";
 import { useProgressData } from "@/hooks/useProgressData";
 import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
@@ -26,7 +27,7 @@ export default function Profile() {
         headerImage={<></>}
       >
         <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ff5733" />
+          <ActivityIndicator size="large" color={AppColors.primary} />
           <ThemedText style={styles.loadingText}>Loading progress data...</ThemedText>
         </ThemedView>
       </ParallaxScrollView>
@@ -132,9 +133,11 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
   },
   titleContainer: {
-    justifyContent: "center",
+    flexDirection: "row",
     alignItems: "center",
-    marginVertical: 30,
+    gap: Spacing.defaultGap,
+    marginLeft: Spacing.titleContainerLeft,
+    marginBottom: Spacing.xl,
   },
 
   // Trackers Section
@@ -143,20 +146,20 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   eftTrackerContainer: {
-    backgroundColor: "#ebebeb",
+    backgroundColor: AppColors.cardBackground,
     borderRadius: 12,
     padding: 16,
-    shadowColor: "#c2c2c2",
+    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 5,
   },
   hideoutTrackerContainer: {
-    backgroundColor: "#ebebeb",
+    backgroundColor: AppColors.cardBackground,
     borderRadius: 12,
     padding: 16,
-    shadowColor: "#c2c2c2",
+    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
@@ -170,11 +173,11 @@ const styles = StyleSheet.create({
   trackerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333333",
+    color: AppColors.textPrimary,
   },
   trackerSubtitle: {
     fontSize: 14,
-    color: "#666666",
+    color: AppColors.textSecondary,
     marginTop: 2,
   },
   progressContainer: {
@@ -209,7 +212,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: "#ff5733",
+    color: AppColors.error,
     textAlign: "center",
   },
 });

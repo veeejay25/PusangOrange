@@ -3,6 +3,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState, useEffect } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
+import { AppColors, Spacing } from '@/constants/Colors';
 import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
 import { PersistentStorage } from "@/services/persistentStorage";
 
@@ -248,15 +249,16 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 24,
+    gap: Spacing.defaultGap,
+    marginLeft: Spacing.titleContainerLeft,
   },
   settingsContainer: {
-    paddingHorizontal: 16,
-    gap: 20,
+    marginHorizontal: Spacing.containerHorizontal,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xl,
   },
   settingItem: {
-    gap: 8,
+    gap: Spacing.xs,
   },
   settingLabel: {
     fontSize: 18,
@@ -264,35 +266,37 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: AppColors.filterInactiveBorder,
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
-    color: '#333',
+    backgroundColor: AppColors.filterInactive,
+    color: AppColors.textPrimary,
+    marginBottom: -10,
   },
   dropdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: AppColors.filterInactiveBorder,
     borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#f9f9f9',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: AppColors.filterInactive,
+    marginBottom: -10,
   },
   dropdownText: {
     fontSize: 16,
-    color: '#333',
+    color: AppColors.textPrimary,
   },
   dropdownArrow: {
     fontSize: 12,
     color: '#666',
   },
   resetButton: {
-    backgroundColor: '#ff4444',
+    backgroundColor: AppColors.error,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
@@ -305,12 +309,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cacheButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: AppColors.info,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
     alignItems: 'center',
-    marginTop: 10,
   },
   cacheButtonText: {
     color: 'white',
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: AppColors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -333,12 +336,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginBottom: 16,
+    marginBottom: 10,
     textAlign: 'center',
   },
   dropdownItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },

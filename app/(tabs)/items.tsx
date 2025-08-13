@@ -1,6 +1,7 @@
 import { Image } from 'expo-image';
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions, FlatList, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppColors, Spacing } from '@/constants/Colors';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -273,7 +274,7 @@ export default function ItemsScreen() {
     if (loading) {
       return (
         <ThemedView style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#ff5733" />
+          <ActivityIndicator size="large" color={AppColors.primary} />
           <ThemedText style={styles.loadingText}>Loading items...</ThemedText>
         </ThemedView>
       );
@@ -293,9 +294,6 @@ export default function ItemsScreen() {
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Items</ThemedText>
         </ThemedView>
-        <ThemedText style={styles.subtitle}>
-          {filteredItems.length} of {items.length} items
-        </ThemedText>
 
         {/* Filter Buttons */}
         <ThemedView style={styles.filterContainer}>
@@ -346,9 +344,13 @@ export default function ItemsScreen() {
           </ThemedView>
         </ThemedView>
 
+        <ThemedText style={styles.subtitle}>
+          {filteredItems.length} of {items.length} items
+        </ThemedText>
+
         {isFiltering ? (
           <ThemedView style={styles.filteringContainer}>
-            <ActivityIndicator size="small" color="#4CAF50" />
+            <ActivityIndicator size="small" color={AppColors.success} />
             <ThemedText style={styles.filteringText}>Updating filters...</ThemedText>
           </ThemedView>
         ) : (
@@ -407,14 +409,13 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 24,
+    gap: Spacing.defaultGap,
+    marginLeft: Spacing.titleContainerLeft,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
     textAlign: 'center',
-    marginBottom: 20,
   },
   centerContainer: {
     flex: 1,
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#ff5733',
+    color: AppColors.error,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
@@ -439,27 +440,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   filterContainer: {
-    marginBottom: 16,
-    gap: 8,
+    marginHorizontal: Spacing.containerHorizontal
   },
   filterButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 10,
     paddingHorizontal: 16,
     gap: 8,
   },
   filterButton: {
     flex: 1,
-    paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: AppColors.filterInactive,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.2)',
-    alignItems: 'center',
+    borderColor: AppColors.filterInactiveBorder,
+    alignItems: "center",
   },
   filterButtonActive: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: AppColors.success,
+    borderColor: AppColors.success,
   },
   filterButtonText: {
     fontSize: 14,
@@ -473,17 +473,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginLeft: -30,
-    marginRight: -30,
+    marginHorizontal: Spacing.containerHorizontal
   },
   itemCard: {
     width: itemCardWidth,
     height: 200, // Further increased height for all content
-    backgroundColor: '#ebebeb',
+    backgroundColor: AppColors.cardBackground,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
-    shadowColor: '#c2c2c2',
+    marginBottom: 7,
+    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -517,7 +516,7 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 11,
-    color: '#333',
+    color: AppColors.textPrimary,
     lineHeight: 14,
     textAlign: 'center',
     fontWeight: '600',
@@ -525,7 +524,7 @@ const styles = StyleSheet.create({
   },
   itemQuantity: {
     fontSize: 10,
-    color: '#666',
+    color: AppColors.textSecondary,
     textAlign: 'center',
   },
   itemTags: {
@@ -548,7 +547,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF9800',
   },
   firTag: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: AppColors.success,
   },
   tagText: {
     fontSize: 8,
@@ -556,7 +555,7 @@ const styles = StyleSheet.create({
   },
   itemSource: {
     fontSize: 9,
-    color: '#888',
+    color: AppColors.textTertiary,
     textAlign: 'center',
     lineHeight: 12,
   },
@@ -565,7 +564,7 @@ const styles = StyleSheet.create({
   },
   tapHint: {
     fontSize: 8,
-    color: '#999',
+    color: AppColors.textMuted,
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 4,
@@ -647,17 +646,17 @@ const styles = StyleSheet.create({
   },
   usageTrader: {
     fontSize: 13,
-    color: '#666',
+    color: AppColors.textSecondary,
     marginBottom: 4,
   },
   usageQuantity: {
     fontSize: 13,
-    color: '#4CAF50',
+    color: AppColors.success,
     fontWeight: '500',
   },
   itemList: {
     flex: 1,
-    marginHorizontal: -30,
+    marginHorizontal: Spacing.containerHorizontal,
   },
   itemListContent: {
     paddingHorizontal: 16,
@@ -675,6 +674,6 @@ const styles = StyleSheet.create({
   },
   filteringText: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: AppColors.success,
   },
 });
