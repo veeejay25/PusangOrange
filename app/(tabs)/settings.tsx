@@ -6,7 +6,6 @@ import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from 
 import { AppColors, Spacing } from '@/constants/Colors';
 import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
 import { PersistentStorage } from "@/services/persistentStorage";
-
 interface DropdownItem {
   label: string;
   value: string;

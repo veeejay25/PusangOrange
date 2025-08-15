@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import { AppColors, Spacing } from '@/constants/Colors';
-
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -9,7 +8,6 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { HideoutModuleCard } from "@/components/HideoutModuleCard";
 import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
 import { fetchHideoutStations, filterHideoutModulesByType, HideoutStation, getEffectiveHideoutLevel, canUpgradeHideoutStation, getMissingHideoutRequirements } from "@/services/tarkovApi";
-
 
 export default function HideoutScreen() {
   const { settings, updateHideoutModuleLevel } = usePlayerSettings();

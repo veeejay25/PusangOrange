@@ -2,7 +2,6 @@ import { Image } from 'expo-image';
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors, Spacing } from '@/constants/Colors';
-
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -10,8 +9,6 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ItemCard } from '@/components/ItemCard';
 import { usePlayerSettings } from '@/contexts/PlayerSettingsContext';
 import { fetchAllItems, Item } from '@/services/tarkovApi';
-
-
 interface ItemDetailModalProps {
   item: Item | null;
   visible: boolean;
