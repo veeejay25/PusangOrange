@@ -122,48 +122,57 @@ export default function HideoutScreen() {
           {filteredStations.length} of {allStations.length} modules
         </ThemedText>
 
-        <View style={styles.moduleGrid}>
-          {filteredStations.length > 0 ? (
-            filteredStations.map((station) => {
-              const currentLevel = settings?.hideoutModuleLevels?.[station.id] || 0;
-              const effectiveLevel = getEffectiveHideoutLevel(station.id, station.name, settings as any);
-              const displayLevel = Math.max(currentLevel, effectiveLevel);
-              const hasEditionBonus = effectiveLevel > currentLevel;
-              
-              const playerSettings = {
-                level: settings.level || 1,
-                hideoutModuleLevels: settings.hideoutModuleLevels || {},
-                traderLevels: settings.traderLevels || {},
-                gameEdition: settings.gameEdition || 'Standard'
-              };
-              
-              const canUpgrade = canUpgradeHideoutStation(station, currentLevel, playerSettings);
-              const canDowngrade = currentLevel > 0;
-              const missingRequirements = getMissingHideoutRequirements(station, currentLevel, playerSettings);
-              
-              return (
-                <HideoutModuleCard 
-                  key={station.id} 
-                  station={station}
-                  currentLevel={currentLevel}
-                  maxLevel={station.levels.length}
-                  displayLevel={displayLevel}
-                  hasEditionBonus={hasEditionBonus}
-                  canUpgrade={canUpgrade}
-                  canDowngrade={canDowngrade}
-                  missingRequirements={missingRequirements}
-                  onLevelChange={handleLevelChange}
-                />
-              );
-            })
-          ) : (
-            <ThemedView style={styles.centerContainer}>
-              <ThemedText style={styles.emptyText}>
-                No {moduleFilter} modules found.
-              </ThemedText>
-            </ThemedView>
-          )}
-        </View>
+        {filteredStations.length > 0 ? (
+          <View style={styles.moduleGrid}>
+            {filteredStations.reduce((rows, station, index) => {
+              if (index % 2 === 0) {
+                rows.push(filteredStations.slice(index, index + 2));
+              }
+              return rows;
+            }, [] as HideoutStation[][]).map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.moduleRow}>
+                {row.map((station) => {
+                  const currentLevel = settings?.hideoutModuleLevels?.[station.id] || 0;
+                  const effectiveLevel = getEffectiveHideoutLevel(station.id, station.name, settings as any);
+                  const displayLevel = Math.max(currentLevel, effectiveLevel);
+                  const hasEditionBonus = effectiveLevel > currentLevel;
+                  
+                  const playerSettings = {
+                    level: settings.level || 1,
+                    hideoutModuleLevels: settings.hideoutModuleLevels || {},
+                    traderLevels: settings.traderLevels || {},
+                    gameEdition: settings.gameEdition || 'Standard'
+                  };
+                  
+                  const canUpgrade = canUpgradeHideoutStation(station, currentLevel, playerSettings);
+                  const canDowngrade = currentLevel > 0;
+                  const missingRequirements = getMissingHideoutRequirements(station, currentLevel, playerSettings);
+                  
+                  return (
+                    <HideoutModuleCard 
+                      key={station.id} 
+                      station={station}
+                      currentLevel={currentLevel}
+                      maxLevel={station.levels.length}
+                      displayLevel={displayLevel}
+                      hasEditionBonus={hasEditionBonus}
+                      canUpgrade={canUpgrade}
+                      canDowngrade={canDowngrade}
+                      missingRequirements={missingRequirements}
+                      onLevelChange={handleLevelChange}
+                    />
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        ) : (
+          <ThemedView style={styles.centerContainer}>
+            <ThemedText style={styles.emptyText}>
+              No {moduleFilter} modules found.
+            </ThemedText>
+          </ThemedView>
+        )}
       </>
     );
   };
@@ -213,11 +222,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   moduleGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flex: 1,
+    marginHorizontal: Spacing.containerHorizontal,
     paddingHorizontal: 16,
-    marginHorizontal: Spacing.containerHorizontal
+  },
+  moduleRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',  
   },
   filterButtonsContainer: {
     flexDirection: "row",

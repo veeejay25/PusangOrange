@@ -15,11 +15,11 @@ export interface HideoutModuleCardProps {
   hasEditionBonus: boolean;
   canUpgrade: boolean;
   canDowngrade: boolean;
-  missingRequirements: Array<{
+  missingRequirements: {
     name: string;
     required: number;
     current: number;
-  }>;
+  }[];
   onLevelChange: (stationId: string, newLevel: number) => void;
 }
 
@@ -165,11 +165,11 @@ export function HideoutModuleCard({
 const styles = StyleSheet.create({
   moduleCard: {
     width: moduleCardWidth,
-    height: moduleCardWidth + 20,
+    height: 200,
     backgroundColor: AppColors.cardBackground,
     borderRadius: 8,
-    padding: 8,
-    marginBottom: 10,
+    padding: 12,
+    marginBottom: 7,
     shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
