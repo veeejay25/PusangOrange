@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import { useState } from "react";
 import { StyleSheet, ActivityIndicator } from "react-native";
 import { AppColors, Spacing } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import FlexibleTracker from "../../components/ProgressTracker";
 import { useProgressData } from "@/hooks/useProgressData";
 import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
@@ -13,6 +14,12 @@ export default function Profile() {
   const { questProgress, kappaProgress, hideoutProgress, isLoading, error } = useProgressData();
   const { settings } = usePlayerSettings();
   const [isKappaMode, setIsKappaMode] = useState(false);
+  
+  // Theme colors
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textPrimary = useThemeColor({}, 'textPrimary');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const shadowColor = useThemeColor({}, 'shadowColor');
 
   const handleEftToggle = () => {
     setIsKappaMode(!isKappaMode);
@@ -81,15 +88,15 @@ export default function Profile() {
           animateProgress={true}
           animationDuration={2000}
           initialState={isKappaMode}
-          containerStyle={styles.eftTrackerContainer}
+          containerStyle={[styles.eftTrackerContainer, { backgroundColor: cardBackground, shadowColor }]}
           headerStyle={styles.compactHeader}
-          titleStyle={styles.trackerTitle}
-          subtitleStyle={styles.trackerSubtitle}
+          titleStyle={[styles.trackerTitle, { color: textPrimary }]}
+          subtitleStyle={[styles.trackerSubtitle, { color: textSecondary }]}
           progressContainerStyle={styles.progressContainer}
           toggleButtonStyle={styles.toggleButton}
           primaryColor="#ff5733"
           secondaryColor="#ff8a5f"
-          backgroundColor="#4c4c4c"
+          backgroundColor={cardBackground}
           onTogglePress={handleEftToggle}
         />
 
@@ -104,13 +111,13 @@ export default function Profile() {
           maxProgress={hideoutProgress.percentage}
           animateProgress={true}
           animationDuration={2500}
-          containerStyle={styles.hideoutTrackerContainer}
+          containerStyle={[styles.hideoutTrackerContainer, { backgroundColor: cardBackground, shadowColor }]}
           headerStyle={styles.compactHeader}
-          titleStyle={styles.trackerTitle}
-          subtitleStyle={styles.trackerSubtitle}
+          titleStyle={[styles.trackerTitle, { color: textPrimary }]}
+          subtitleStyle={[styles.trackerSubtitle, { color: textSecondary }]}
           progressContainerStyle={styles.progressContainer}
           primaryColor="#ff5733"
-          backgroundColor="#2a2a2a"
+          backgroundColor={cardBackground}
         />
       </ThemedView>
     </ParallaxScrollView>
@@ -146,20 +153,16 @@ const styles = StyleSheet.create({
     marginTop: 50,
   },
   eftTrackerContainer: {
-    backgroundColor: AppColors.cardBackground,
     borderRadius: 12,
     padding: 16,
-    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
     elevation: 5,
   },
   hideoutTrackerContainer: {
-    backgroundColor: AppColors.cardBackground,
     borderRadius: 12,
     padding: 16,
-    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.5,
     shadowRadius: 4,
@@ -173,11 +176,9 @@ const styles = StyleSheet.create({
   trackerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: AppColors.textPrimary,
   },
   trackerSubtitle: {
     fontSize: 14,
-    color: AppColors.textSecondary,
     marginTop: 2,
   },
   progressContainer: {

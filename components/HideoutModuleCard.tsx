@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { Alert, Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import { AppColors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -37,6 +38,11 @@ export function HideoutModuleCard({
   missingRequirements,
   onLevelChange
 }: HideoutModuleCardProps) {
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textPrimary = useThemeColor({}, 'textPrimary');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const textTertiary = useThemeColor({}, 'textTertiary');
+  const shadowColor = useThemeColor({}, 'shadowColor');
   const nextLevel = displayLevel + 1;
   const nextLevelData = station.levels.find(l => l.level === nextLevel);
 
@@ -89,21 +95,21 @@ export function HideoutModuleCard({
     
     if (nextLevelData && displayLevel < maxLevel) {
       return (
-        <ThemedText style={styles.moduleRequirements}>
+        <ThemedText style={[styles.moduleRequirements, { color: textTertiary }]}>
           Next: {nextLevelData.itemRequirements.length} items
         </ThemedText>
       );
     }
     
     return (
-      <ThemedText style={styles.moduleRequirements}>
+      <ThemedText style={[styles.moduleRequirements, { color: textTertiary }]}>
         Locked
       </ThemedText>
     );
   };
 
   return (
-    <ThemedView style={styles.moduleCard}>
+    <ThemedView style={[styles.moduleCard, { backgroundColor: cardBackground, shadowColor }]}>
       <View style={styles.moduleImageContainer}>
         {station.imageLink ? (
           <Image
@@ -119,11 +125,11 @@ export function HideoutModuleCard({
       </View>
       
       <View style={styles.moduleInfo}>
-        <ThemedText type="defaultSemiBold" style={styles.moduleName}>
+        <ThemedText type="defaultSemiBold" style={[styles.moduleName, { color: textPrimary }]}>
           {station.name}
         </ThemedText>
         
-        <ThemedText style={styles.moduleDetails}>
+        <ThemedText style={[styles.moduleDetails, { color: textSecondary }]}>
           Level {displayLevel}/{maxLevel}
           {hasEditionBonus && (
             <ThemedText style={styles.editionBonus}> (Edition Bonus)</ThemedText>
@@ -166,11 +172,9 @@ const styles = StyleSheet.create({
   moduleCard: {
     width: moduleCardWidth,
     height: 200,
-    backgroundColor: AppColors.cardBackground,
     borderRadius: 8,
     padding: 12,
     marginBottom: 7,
-    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -186,7 +190,6 @@ const styles = StyleSheet.create({
   moduleImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: AppColors.cardBackground,
   },
   placeholderImage: {
     width: '100%',
@@ -202,20 +205,17 @@ const styles = StyleSheet.create({
   },
   moduleName: {
     fontSize: 12,
-    color: AppColors.textPrimary,
     lineHeight: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   moduleDetails: {
     fontSize: 10,
-    color: AppColors.textSecondary,
     lineHeight: 14,
     textAlign: 'center',
   },
   moduleRequirements: {
     fontSize: 9,
-    color: AppColors.textTertiary,
     lineHeight: 12,
     textAlign: 'center',
   },

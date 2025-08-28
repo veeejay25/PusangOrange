@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import React from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -17,6 +18,12 @@ const screenWidth = Dimensions.get('window').width;
 const itemCardWidth = (screenWidth - 50) / 2;
 
 export const ItemCard = React.memo(function ItemCard({ item, onPress }: ItemCardProps) {
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const textPrimary = useThemeColor({}, 'textPrimary');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const textTertiary = useThemeColor({}, 'textTertiary');
+  const textMuted = useThemeColor({}, 'textMuted');
+  const shadowColor = useThemeColor({}, 'shadowColor');
   const getSourceColor = () => {
     switch (item.source) {
       case 'hideout': return styles.hideoutTag;
@@ -37,7 +44,7 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress }: ItemCard
 
   return (
     <TouchableOpacity onPress={onPress}>
-      <ThemedView style={styles.itemCard}>
+      <ThemedView style={[styles.itemCard, { backgroundColor: cardBackground, shadowColor }]}>
         <View style={styles.itemImageContainer}>
           {item.iconLink ? (
             <Image
@@ -53,11 +60,11 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress }: ItemCard
         </View>
         
         <View style={styles.itemInfo}>
-          <ThemedText type="defaultSemiBold" style={styles.itemName} numberOfLines={2}>
+          <ThemedText type="defaultSemiBold" style={[styles.itemName, { color: textPrimary }]} numberOfLines={2}>
             {item.name}
           </ThemedText>
           
-          <ThemedText style={styles.itemQuantity}>
+          <ThemedText style={[styles.itemQuantity, { color: textSecondary }]}>
             Total: {item.totalQuantity}
           </ThemedText>
           
@@ -74,11 +81,11 @@ export const ItemCard = React.memo(function ItemCard({ item, onPress }: ItemCard
             )}
           </View>
           
-          <ThemedText style={styles.itemSource}>
+          <ThemedText style={[styles.itemSource, { color: textTertiary }]}>
             {item.usages.length} usage{item.usages.length !== 1 ? 's' : ''}
           </ThemedText>
           
-          <ThemedText style={styles.tapHint}>
+          <ThemedText style={[styles.tapHint, { color: textMuted }]}>
             Tap for details
           </ThemedText>
         </View>
@@ -91,11 +98,9 @@ const styles = StyleSheet.create({
   itemCard: {
     width: itemCardWidth,
     height: 200,
-    backgroundColor: AppColors.cardBackground,
     borderRadius: 8,
     padding: 12,
     marginBottom: 7,
-    shadowColor: AppColors.shadowLight,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -129,7 +134,6 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 11,
-    color: AppColors.textPrimary,
     lineHeight: 14,
     textAlign: 'center',
     fontWeight: '600',
@@ -137,7 +141,6 @@ const styles = StyleSheet.create({
   },
   itemQuantity: {
     fontSize: 10,
-    color: AppColors.textSecondary,
     textAlign: 'center',
   },
   itemTags: {
@@ -171,13 +174,11 @@ const styles = StyleSheet.create({
   },
   itemSource: {
     fontSize: 9,
-    color: AppColors.textTertiary,
     textAlign: 'center',
     lineHeight: 12,
   },
   tapHint: {
     fontSize: 8,
-    color: AppColors.textMuted,
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 4,

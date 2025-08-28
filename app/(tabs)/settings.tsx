@@ -4,6 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { useState, useEffect } from "react";
 import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
 import { AppColors, Spacing } from '@/constants/Colors';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
 import { PersistentStorage } from "@/services/persistentStorage";
 interface DropdownItem {
@@ -29,6 +30,14 @@ export default function Settings() {
   const [playerNameInput, setPlayerNameInput] = useState<string>(settings.playerName);
   const [factionModalVisible, setFactionModalVisible] = useState(false);
   const [editionModalVisible, setEditionModalVisible] = useState(false);
+  
+  // Theme colors
+  const textPrimary = useThemeColor({}, 'textPrimary');
+  const textSecondary = useThemeColor({}, 'textSecondary');
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const inputBackground = useThemeColor({ light: AppColors.filterInactive, dark: '#333333' }, 'background');
+  const borderColor = useThemeColor({ light: AppColors.filterInactiveBorder, dark: '#555555' }, 'background');
+  const placeholderColor = useThemeColor({ light: '#666', dark: '#999' }, 'textSecondary');
 
   // Update inputs when settings change (e.g., when loaded from storage)
   useEffect(() => {
@@ -121,11 +130,11 @@ export default function Settings() {
             Player Name
           </ThemedText>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { backgroundColor: inputBackground, borderColor, color: textPrimary }]}
             value={playerNameInput}
             onChangeText={handlePlayerNameChange}
             placeholder="Enter your player name"
-            placeholderTextColor="#666"
+            placeholderTextColor={placeholderColor}
             maxLength={30}
           />
         </ThemedView>
@@ -136,12 +145,12 @@ export default function Settings() {
             Player Level
           </ThemedText>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { backgroundColor: inputBackground, borderColor, color: textPrimary }]}
             value={levelInput}
             onChangeText={handleLevelChange}
             keyboardType="numeric"
             placeholder="Enter level (1-79)"
-            placeholderTextColor="#666"
+            placeholderTextColor={placeholderColor}
             maxLength={2}
           />
         </ThemedView>
@@ -152,11 +161,11 @@ export default function Settings() {
             PMC Faction
           </ThemedText>
           <TouchableOpacity
-            style={styles.dropdown}
+            style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
             onPress={() => setFactionModalVisible(true)}
           >
-            <ThemedText style={styles.dropdownText}>{settings.faction}</ThemedText>
-            <ThemedText style={styles.dropdownArrow}>▼</ThemedText>
+            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>{settings.faction}</ThemedText>
+            <ThemedText style={[styles.dropdownArrow, { color: placeholderColor }]}>▼</ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -166,11 +175,11 @@ export default function Settings() {
             Game Edition
           </ThemedText>
           <TouchableOpacity
-            style={styles.dropdown}
+            style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
             onPress={() => setEditionModalVisible(true)}
           >
-            <ThemedText style={styles.dropdownText}>{settings.gameEdition}</ThemedText>
-            <ThemedText style={styles.dropdownArrow}>▼</ThemedText>
+            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>{settings.gameEdition}</ThemedText>
+            <ThemedText style={[styles.dropdownArrow, { color: placeholderColor }]}>▼</ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -203,7 +212,7 @@ export default function Settings() {
           activeOpacity={1}
           onPress={() => setFactionModalVisible(false)}
         >
-          <ThemedView style={styles.modalContent}>
+          <ThemedView style={[styles.modalContent, { backgroundColor: cardBackground }]}>
             <ThemedText type="subtitle" style={styles.modalTitle}>
               Select PMC Faction
             </ThemedText>
@@ -228,7 +237,7 @@ export default function Settings() {
           activeOpacity={1}
           onPress={() => setEditionModalVisible(false)}
         >
-          <ThemedView style={styles.modalContent}>
+          <ThemedView style={[styles.modalContent, { backgroundColor: cardBackground }]}>
             <ThemedText type="subtitle" style={styles.modalTitle}>
               Select Game Edition
             </ThemedText>
@@ -265,13 +274,10 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderColor: AppColors.filterInactiveBorder,
     borderRadius: 8,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontSize: 16,
-    backgroundColor: AppColors.filterInactive,
-    color: AppColors.textPrimary,
     marginBottom: -10,
   },
   dropdown: {
@@ -279,20 +285,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: AppColors.filterInactiveBorder,
     borderRadius: 8,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: AppColors.filterInactive,
     marginBottom: -10,
   },
   dropdownText: {
     fontSize: 16,
-    color: AppColors.textPrimary,
   },
   dropdownArrow: {
     fontSize: 12,
-    color: '#666',
   },
   resetButton: {
     backgroundColor: AppColors.error,
@@ -326,7 +328,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
     minWidth: 280,

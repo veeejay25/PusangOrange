@@ -8,6 +8,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 // Comprehensive Type Definitions
 interface FlexibleTrackerProps {
@@ -106,7 +107,7 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
   primaryColor = "#4CAF50",
   secondaryColor = "#2196F3",
   backgroundColor,
-  progressBackgroundColor = "#E0E0E0",
+  progressBackgroundColor,
 
   // Custom components
   LeftComponent,
@@ -119,6 +120,14 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
   onPress,
   onTogglePress,
 }) => {
+  // Theme colors
+  const cardBackground = useThemeColor({}, 'cardBackground');
+  const shadowColor = useThemeColor({}, 'shadowColor');
+  
+  // Default progress background color based on theme
+  const defaultProgressBg = useThemeColor({ light: '#E0E0E0', dark: '#404040 '}, 'background');
+  const finalProgressBackgroundColor = progressBackgroundColor || defaultProgressBg;
+  
   // State Management
   const [isActiveState, setIsActiveState] = useState(initialState);
   const [currentProgress, setCurrentProgress] = useState(initialProgress);
@@ -185,7 +194,7 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
 
   // Dynamic colors based on state
   const currentColor = isActiveState ? primaryColor : secondaryColor;
-  const currentBackgroundColor = backgroundColor || `${currentColor}10`;
+  const currentBackgroundColor = backgroundColor || cardBackground;
 
   return (
     <TouchableOpacity
@@ -193,7 +202,7 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
       activeOpacity={onPress ? 0.7 : 1}
       style={[
         styles.baseContainer,
-        { backgroundColor: currentBackgroundColor },
+        { backgroundColor: currentBackgroundColor, shadowColor },
         containerStyle,
       ]}
     >
@@ -259,7 +268,7 @@ const FlexibleTracker: React.FC<FlexibleTrackerProps> = ({
           <View
             style={[
               styles.baseProgressContainer,
-              { backgroundColor: progressBackgroundColor },
+              { backgroundColor: finalProgressBackgroundColor },
               progressContainerStyle,
             ]}
           >
@@ -297,6 +306,10 @@ const styles = StyleSheet.create({
   baseContainer: {
     padding: 16,
     borderRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   baseHeader: {
     flexDirection: "row",
