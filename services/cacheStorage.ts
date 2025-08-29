@@ -4,7 +4,7 @@
  * Data is lost when app is closed/restarted
  */
 
-import { PlayerSettings } from '@/contexts/PlayerSettingsContext';
+import { PlayerSettings } from './tarkovTypes';
 
 interface CacheEntry<T> {
   data: T;

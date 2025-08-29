@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Quest, Trader, HideoutStation } from './tarkovApi';
+import { Quest, Trader, HideoutStation } from './tarkovTypes';
 
 interface CachedData<T> {
   data: T;
@@ -11,8 +11,8 @@ interface QuestCache {
   [traderId: string]: CachedData<Quest[]>;
 }
 
-interface TraderCache extends CachedData<Trader[]> {}
-interface HideoutStationCache extends CachedData<HideoutStation[]> {}
+type TraderCache = CachedData<Trader[]>;
+type HideoutStationCache = CachedData<HideoutStation[]>;
 
 const QUEST_CACHE_KEY = '@quest_cache';
 const TRADER_CACHE_KEY = '@trader_cache';

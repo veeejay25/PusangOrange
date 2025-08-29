@@ -8,11 +8,9 @@ import type {
   HideoutStation,
   PlayerSettings,
   ExtendedPlayerSettings,
-  PartialExtendedPlayerSettings,
   QuestFilterType,
   HideoutFilterType,
   MissingRequirement,
-  GameEdition,
   PlayerFaction,
   EditionBonuses,
   HideoutEditionBonuses,
@@ -194,18 +192,18 @@ export const QuestHelpers = {
   getMissingRequirements(
     quest: Quest,
     playerSettings: PlayerSettings
-  ): Array<{
+  ): {
     type: 'quest' | 'trader' | 'level' | 'faction';
     description: string;
     current?: number | string;
     required?: number | string;
-  }> {
-    const missing: Array<{
+  }[] {
+    const missing: {
       type: 'quest' | 'trader' | 'level' | 'faction';
       description: string;
       current?: number | string;
       required?: number | string;
-    }> = [];
+    }[] = [];
 
     // Check prerequisite quests
     quest.taskRequirements.forEach(requirement => {

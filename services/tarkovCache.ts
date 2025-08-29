@@ -4,7 +4,6 @@
  */
 
 import type { CacheConfig } from './tarkovTypes';
-import { StorageError } from './tarkovErrors';
 
 /**
  * Cache entry with metadata
@@ -222,14 +221,17 @@ export class TarkovCache {
     const initialSize = this.cache.size;
     const now = Date.now();
     
-    for (const [key, entry] of this.cache.entries()) {
+    // Use Array.from to avoid iterator compatibility issues
+    const cacheEntries = Array.from(this.cache.entries());
+    for (const [key, entry] of cacheEntries) {
       if (this.isExpired(entry, now)) {
         this.cache.delete(key);
       }
     }
 
     // Also cleanup old pending requests (older than 30 seconds)
-    for (const [key, pending] of this.pendingRequests.entries()) {
+    const pendingEntries = Array.from(this.pendingRequests.entries());
+    for (const [key, pending] of pendingEntries) {
       if (now - pending.timestamp > 30000) {
         this.pendingRequests.delete(key);
       }
@@ -343,7 +345,8 @@ export class TarkovCache {
     
     // Rough memory usage estimate (in bytes)
     let memoryUsage = 0;
-    for (const entry of this.cache.values()) {
+    const cacheValues = Array.from(this.cache.values());
+    for (const entry of cacheValues) {
       memoryUsage += JSON.stringify(entry.data).length * 2; // Rough UTF-16 estimate
       memoryUsage += 32; // Metadata overhead estimate
     }

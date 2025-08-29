@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Quest, Trader, HideoutStation } from './tarkovApi';
-import { PlayerSettings } from '@/contexts/PlayerSettingsContext';
+import { Quest, Trader, HideoutStation, PlayerSettings } from './tarkovTypes';
 
 /**
  * Persistent Storage Manager
@@ -158,7 +157,7 @@ export class PersistentStorage {
           size: data ? JSON.stringify(data).length : 0,
           lastUpdated
         };
-      } catch (error) {
+      } catch (_error) {
         info[name] = { size: 0, lastUpdated: null };
       }
     }
