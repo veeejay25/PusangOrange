@@ -7,7 +7,7 @@ A React Native mobile app built with Expo for tracking your Escape from Tarkov p
 1. Install dependencies
 
    ```bash
-   npm install
+   npm install 
    ```
 
 2. Start the app
