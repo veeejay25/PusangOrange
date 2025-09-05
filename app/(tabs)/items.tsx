@@ -1,14 +1,28 @@
-import { Image } from 'expo-image';
-import React, { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { AppColors, Spacing } from '@/constants/Colors';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { ItemCard } from '@/components/ItemCard';
-import { usePlayerSettings } from '@/contexts/PlayerSettingsContext';
-import { fetchAllItems, Item } from '@/services/tarkovApi';
+import { Image } from "expo-image";
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { AppColors, Spacing } from "@/constants/Colors";
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import { ItemCard } from "@/components/ItemCard";
+import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
+import { fetchAllItems, Item } from "@/services/tarkovApi";
 interface ItemDetailModalProps {
   item: Item | null;
   visible: boolean;
@@ -18,8 +32,8 @@ interface ItemDetailModalProps {
 function ItemDetailModal({ item, visible, onClose }: ItemDetailModalProps) {
   if (!item) return null;
 
-  const hideoutUsages = item.usages.filter(usage => usage.stationName);
-  const questUsages = item.usages.filter(usage => usage.questName);
+  const hideoutUsages = item.usages.filter((usage) => usage.stationName);
+  const questUsages = item.usages.filter((usage) => usage.questName);
 
   return (
     <Modal
@@ -37,7 +51,7 @@ function ItemDetailModal({ item, visible, onClose }: ItemDetailModalProps) {
             <IconSymbol name="xmark" size={24} color="#666" />
           </TouchableOpacity>
         </View>
-        
+
         <ScrollView style={styles.modalContent}>
           <View style={styles.itemDetailsHeader}>
             {item.iconLink ? (
@@ -57,7 +71,9 @@ function ItemDetailModal({ item, visible, onClose }: ItemDetailModalProps) {
               </ThemedText>
               {item.foundInRaid && (
                 <View style={[styles.tag, styles.firTag, styles.detailTag]}>
-                  <ThemedText style={[styles.tagText, { color: 'white' }]}>Found in Raid Required</ThemedText>
+                  <ThemedText style={[styles.tagText, { color: "white" }]}>
+                    Found in Raid Required
+                  </ThemedText>
                 </View>
               )}
             </View>
@@ -72,7 +88,10 @@ function ItemDetailModal({ item, visible, onClose }: ItemDetailModalProps) {
                 .sort((a, b) => (a.stationLevel || 0) - (b.stationLevel || 0))
                 .map((usage, index) => (
                   <ThemedView key={index} style={styles.usageItem}>
-                    <ThemedText type="defaultSemiBold" style={styles.usageTitle}>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={styles.usageTitle}
+                    >
                       {usage.stationName} - Level {usage.stationLevel}
                     </ThemedText>
                     <ThemedText style={styles.usageQuantity}>
@@ -114,8 +133,8 @@ export default function ItemsScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [itemFilter, setItemFilter] = useState<'hideout' | 'quest'>('hideout');
-  const [firFilter, setFirFilter] = useState<'all' | 'fir' | 'non-fir'>('all');
+  const [itemFilter, setItemFilter] = useState<"hideout" | "quest">("hideout");
+  const [firFilter, setFirFilter] = useState<"all" | "fir" | "non-fir">("all");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
@@ -126,13 +145,13 @@ export default function ItemsScreen() {
         setLoading(true);
         const allItems = await fetchAllItems({
           hideoutModuleLevels: settings.hideoutModuleLevels,
-          completedQuestIds: settings.completedQuestIds
+          completedQuestIds: settings.completedQuestIds,
         });
         setItems(allItems);
         setError(null);
       } catch (err) {
-        console.error('Failed to load items:', err);
-        setError('Failed to load items. Please try again later.');
+        console.error("Failed to load items:", err);
+        setError("Failed to load items. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -142,61 +161,70 @@ export default function ItemsScreen() {
   }, [settings.hideoutModuleLevels, settings.completedQuestIds]);
 
   // Pre-filter items by source for better performance
-  const hideoutItems = useMemo(() => 
-    items.filter(item => item.source === 'hideout' || item.source === 'mixed'), 
+  const hideoutItems = useMemo(
+    () =>
+      items.filter(
+        (item) => item.source === "hideout" || item.source === "mixed"
+      ),
     [items]
   );
-  
-  const questItems = useMemo(() => 
-    items.filter(item => item.source === 'quest'), 
+
+  const questItems = useMemo(
+    () => items.filter((item) => item.source === "quest"),
     [items]
   );
-  
+
   // Get the base filtered items quickly
   const baseFilteredItems = useMemo(() => {
-    return itemFilter === 'hideout' ? hideoutItems : questItems;
+    return itemFilter === "hideout" ? hideoutItems : questItems;
   }, [itemFilter, hideoutItems, questItems]);
-  
+
   // Apply FIR filter only when needed
   const filteredItems = useMemo(() => {
-    if (firFilter === 'all') return baseFilteredItems;
-    
-    return baseFilteredItems.filter(item => 
-      firFilter === 'fir' ? item.foundInRaid : !item.foundInRaid
+    if (firFilter === "all") return baseFilteredItems;
+
+    return baseFilteredItems.filter((item) =>
+      firFilter === "fir" ? item.foundInRaid : !item.foundInRaid
     );
   }, [baseFilteredItems, firFilter]);
-  
+
   // Memoized item press handler to prevent recreation on every render
   const handleItemPress = useCallback((item: Item) => {
     setSelectedItem(item);
     setModalVisible(true);
   }, []);
-  
+
   const handleModalClose = useCallback(() => {
     setModalVisible(false);
     setSelectedItem(null);
   }, []);
-  
+
   // Optimized filter handlers with non-blocking updates
-  const handleItemFilterChange = useCallback((filter: 'hideout' | 'quest') => {
-    if (filter === itemFilter) return; // Prevent unnecessary updates
-    
-    setIsFiltering(true);
-    startTransition(() => {
-      setItemFilter(filter);
-      setIsFiltering(false);
-    });
-  }, [itemFilter]);
-  
-  const handleFirFilterChange = useCallback((filter: 'all' | 'fir' | 'non-fir') => {
-    if (filter === firFilter) return; // Prevent unnecessary updates
-    
-    setIsFiltering(true);
-    startTransition(() => {
-      setFirFilter(filter);
-      setIsFiltering(false);
-    });
-  }, [firFilter]);
+  const handleItemFilterChange = useCallback(
+    (filter: "hideout" | "quest") => {
+      if (filter === itemFilter) return; // Prevent unnecessary updates
+
+      setIsFiltering(true);
+      startTransition(() => {
+        setItemFilter(filter);
+        setIsFiltering(false);
+      });
+    },
+    [itemFilter]
+  );
+
+  const handleFirFilterChange = useCallback(
+    (filter: "all" | "fir" | "non-fir") => {
+      if (filter === firFilter) return; // Prevent unnecessary updates
+
+      setIsFiltering(true);
+      startTransition(() => {
+        setFirFilter(filter);
+        setIsFiltering(false);
+      });
+    },
+    [firFilter]
+  );
 
   const renderContent = () => {
     if (loading) {
@@ -211,7 +239,11 @@ export default function ItemsScreen() {
     if (error) {
       return (
         <ThemedView style={styles.centerContainer}>
-          <IconSymbol name="exclamationmark.triangle" size={48} color="#ff5733" />
+          <IconSymbol
+            name="exclamationmark.triangle"
+            size={48}
+            color="#ff5733"
+          />
           <ThemedText style={styles.errorText}>{error}</ThemedText>
         </ThemedView>
       );
@@ -227,45 +259,85 @@ export default function ItemsScreen() {
         <ThemedView style={styles.filterContainer}>
           <ThemedView style={styles.filterButtonsContainer}>
             <TouchableOpacity
-              style={[styles.filterButton, itemFilter === 'hideout' && styles.filterButtonActive]}
-              onPress={() => handleItemFilterChange('hideout')}
+              style={[
+                styles.filterButton,
+                itemFilter === "hideout" && styles.filterButtonActive,
+              ]}
+              onPress={() => handleItemFilterChange("hideout")}
             >
-              <ThemedText style={[styles.filterButtonText, itemFilter === 'hideout' && styles.filterButtonTextActive]}>
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  itemFilter === "hideout" && styles.filterButtonTextActive,
+                ]}
+              >
                 Hideout
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.filterButton, itemFilter === 'quest' && styles.filterButtonActive]}
-              onPress={() => handleItemFilterChange('quest')}
+              style={[
+                styles.filterButton,
+                itemFilter === "quest" && styles.filterButtonActive,
+              ]}
+              onPress={() => handleItemFilterChange("quest")}
             >
-              <ThemedText style={[styles.filterButtonText, itemFilter === 'quest' && styles.filterButtonTextActive]}>
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  itemFilter === "quest" && styles.filterButtonTextActive,
+                ]}
+              >
                 Quest
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
-          
+
           <ThemedView style={styles.filterButtonsContainer}>
             <TouchableOpacity
-              style={[styles.filterButton, firFilter === 'all' && styles.filterButtonActive]}
-              onPress={() => handleFirFilterChange('all')}
+              style={[
+                styles.filterButton,
+                firFilter === "all" && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFirFilterChange("all")}
             >
-              <ThemedText style={[styles.filterButtonText, firFilter === 'all' && styles.filterButtonTextActive]}>
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  firFilter === "all" && styles.filterButtonTextActive,
+                ]}
+              >
                 All Items
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.filterButton, firFilter === 'fir' && styles.filterButtonActive]}
-              onPress={() => handleFirFilterChange('fir')}
+              style={[
+                styles.filterButton,
+                firFilter === "fir" && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFirFilterChange("fir")}
             >
-              <ThemedText style={[styles.filterButtonText, firFilter === 'fir' && styles.filterButtonTextActive]}>
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  firFilter === "fir" && styles.filterButtonTextActive,
+                ]}
+              >
                 FIR Only
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.filterButton, firFilter === 'non-fir' && styles.filterButtonActive]}
-              onPress={() => handleFirFilterChange('non-fir')}
+              style={[
+                styles.filterButton,
+                firFilter === "non-fir" && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFirFilterChange("non-fir")}
             >
-              <ThemedText style={[styles.filterButtonText, firFilter === 'non-fir' && styles.filterButtonTextActive]}>
+              <ThemedText
+                style={[
+                  styles.filterButtonText,
+                  firFilter === "non-fir" && styles.filterButtonTextActive,
+                ]}
+              >
                 Non-FIR
               </ThemedText>
             </TouchableOpacity>
@@ -279,16 +351,15 @@ export default function ItemsScreen() {
         {isFiltering ? (
           <ThemedView style={styles.filteringContainer}>
             <ActivityIndicator size="small" color={AppColors.success} />
-            <ThemedText style={styles.filteringText}>Updating filters...</ThemedText>
+            <ThemedText style={styles.filteringText}>
+              Updating filters...
+            </ThemedText>
           </ThemedView>
         ) : (
           <FlatList
             data={filteredItems}
             renderItem={({ item }) => (
-              <ItemCard 
-                item={item} 
-                onPress={() => handleItemPress(item)}
-              />
+              <ItemCard item={item} onPress={() => handleItemPress(item)} />
             )}
             keyExtractor={(item) => item.id}
             numColumns={2}
@@ -310,7 +381,7 @@ export default function ItemsScreen() {
             scrollEnabled={false}
           />
         )}
-        
+
         <ItemDetailModal
           item={selectedItem}
           visible={modalVisible}
@@ -332,20 +403,20 @@ export default function ItemsScreen() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.defaultGap,
     marginLeft: Spacing.titleContainerLeft,
   },
   subtitle: {
     fontSize: 16,
     opacity: 0.7,
-    textAlign: 'center',
+    textAlign: "center",
   },
   centerContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 60,
     gap: 12,
   },
@@ -356,16 +427,16 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: AppColors.error,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 16,
     opacity: 0.7,
-    textAlign: 'center',
+    textAlign: "center",
   },
   filterContainer: {
-    marginHorizontal: Spacing.containerHorizontal
+    marginHorizontal: Spacing.containerHorizontal,
   },
   filterButtonsContainer: {
     flexDirection: "row",
@@ -388,23 +459,23 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   filterButtonTextActive: {
-    color: 'white',
+    color: "white",
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   modalTitle: {
     flex: 1,
@@ -418,10 +489,10 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   itemDetailsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 24,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
     borderRadius: 8,
   },
@@ -434,9 +505,9 @@ const styles = StyleSheet.create({
   modalPlaceholderImage: {
     width: 64,
     height: 64,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#f0f0f0",
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: 8,
     marginRight: 16,
   },
@@ -445,11 +516,11 @@ const styles = StyleSheet.create({
   },
   totalQuantityText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   detailTag: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
   usageSection: {
     marginBottom: 24,
@@ -459,7 +530,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   usageItem: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -475,7 +546,7 @@ const styles = StyleSheet.create({
   usageQuantity: {
     fontSize: 13,
     color: AppColors.success,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   itemList: {
     flex: 1,
@@ -486,12 +557,12 @@ const styles = StyleSheet.create({
   },
   itemRow: {
     flex: 1,
-    justifyContent: 'space-around',
+    justifyContent: "space-around",
   },
   filteringContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 20,
     gap: 8,
   },
@@ -509,6 +580,6 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 8,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

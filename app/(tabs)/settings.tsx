@@ -2,10 +2,21 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useState, useEffect } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, Modal, FlatList, Alert } from "react-native";
-import { AppColors, Spacing } from '@/constants/Colors';
-import { useThemeColor } from '@/hooks/useThemeColor';
-import { usePlayerSettings, PMCFaction, GameEdition } from "@/contexts/PlayerSettingsContext";
+import {
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  Alert,
+} from "react-native";
+import { AppColors, Spacing } from "@/constants/Colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
+import {
+  usePlayerSettings,
+  PMCFaction,
+  GameEdition,
+} from "@/contexts/PlayerSettingsContext";
 import { PersistentStorage } from "@/services/persistentStorage";
 interface DropdownItem {
   label: string;
@@ -13,31 +24,51 @@ interface DropdownItem {
 }
 
 const PMC_FACTIONS: DropdownItem[] = [
-  { label: 'USEC', value: 'USEC' },
-  { label: 'BEAR', value: 'BEAR' },
+  { label: "USEC", value: "USEC" },
+  { label: "BEAR", value: "BEAR" },
 ];
 
 const GAME_EDITIONS: DropdownItem[] = [
-  { label: 'Standard Edition', value: 'Standard' },
-  { label: 'Left Behind Edition', value: 'Left Behind' },
-  { label: 'Prepare for Escape Edition', value: 'Prepare for Escape' },
-  { label: 'Edge of Darkness Edition', value: 'Edge of Darkness' },
+  { label: "Standard Edition", value: "Standard" },
+  { label: "Left Behind Edition", value: "Left Behind" },
+  { label: "Prepare for Escape Edition", value: "Prepare for Escape" },
+  { label: "Edge of Darkness Edition", value: "Edge of Darkness" },
 ];
 
 export default function Settings() {
-  const { settings, updateLevel, updateFaction, updateGameEdition, updatePlayerName, resetProgress } = usePlayerSettings();
-  const [levelInput, setLevelInput] = useState<string>(settings.level.toString());
-  const [playerNameInput, setPlayerNameInput] = useState<string>(settings.playerName);
+  const {
+    settings,
+    updateLevel,
+    updateFaction,
+    updateGameEdition,
+    updatePlayerName,
+    resetProgress,
+  } = usePlayerSettings();
+  const [levelInput, setLevelInput] = useState<string>(
+    settings.level.toString()
+  );
+  const [playerNameInput, setPlayerNameInput] = useState<string>(
+    settings.playerName
+  );
   const [factionModalVisible, setFactionModalVisible] = useState(false);
   const [editionModalVisible, setEditionModalVisible] = useState(false);
-  
+
   // Theme colors
-  const textPrimary = useThemeColor({}, 'textPrimary');
-  const textSecondary = useThemeColor({}, 'textSecondary');
-  const cardBackground = useThemeColor({}, 'cardBackground');
-  const inputBackground = useThemeColor({ light: AppColors.filterInactive, dark: '#333333' }, 'background');
-  const borderColor = useThemeColor({ light: AppColors.filterInactiveBorder, dark: '#555555' }, 'background');
-  const placeholderColor = useThemeColor({ light: '#666', dark: '#999' }, 'textSecondary');
+  const textPrimary = useThemeColor({}, "textPrimary");
+  const textSecondary = useThemeColor({}, "textSecondary");
+  const cardBackground = useThemeColor({}, "cardBackground");
+  const inputBackground = useThemeColor(
+    { light: AppColors.filterInactive, dark: "#333333" },
+    "background"
+  );
+  const borderColor = useThemeColor(
+    { light: AppColors.filterInactiveBorder, dark: "#555555" },
+    "background"
+  );
+  const placeholderColor = useThemeColor(
+    { light: "#666", dark: "#999" },
+    "textSecondary"
+  );
 
   // Update inputs when settings change (e.g., when loaded from storage)
   useEffect(() => {
@@ -46,10 +77,13 @@ export default function Settings() {
   }, [settings.level, settings.playerName]);
 
   const handleLevelChange = (text: string) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
-    if (numericValue === '' || (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 79)) {
+    const numericValue = text.replace(/[^0-9]/g, "");
+    if (
+      numericValue === "" ||
+      (parseInt(numericValue) >= 1 && parseInt(numericValue) <= 79)
+    ) {
       setLevelInput(numericValue);
-      if (numericValue !== '') {
+      if (numericValue !== "") {
         updateLevel(parseInt(numericValue));
       }
     }
@@ -63,17 +97,20 @@ export default function Settings() {
 
   const handleResetProgress = () => {
     Alert.alert(
-      'Reset Progress',
-      'Are you sure you want to reset all quest progress? This action cannot be undone.',
+      "Reset Progress",
+      "Are you sure you want to reset all quest progress? This action cannot be undone.",
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Reset', 
-          style: 'destructive',
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Reset",
+          style: "destructive",
           onPress: () => {
             resetProgress();
-            Alert.alert('Progress Reset', 'Your quest progress has been reset.');
-          }
+            Alert.alert(
+              "Progress Reset",
+              "Your quest progress has been reset."
+            );
+          },
         },
       ]
     );
@@ -81,17 +118,20 @@ export default function Settings() {
 
   const handleClearCache = () => {
     Alert.alert(
-      'Clear API Data',
-      'This will clear all cached API data (quests, traders, hideout). User settings will be preserved. The app will fetch fresh data from the API on next use.',
+      "Clear API Data",
+      "This will clear all cached API data (quests, traders, hideout). User settings will be preserved. The app will fetch fresh data from the API on next use.",
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Clear API Data', 
-          style: 'default',
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear API Data",
+          style: "default",
           onPress: async () => {
             await PersistentStorage.clearAllApiData();
-            Alert.alert('API Data Cleared', 'All cached API data has been cleared. User settings preserved.');
-          }
+            Alert.alert(
+              "API Data Cleared",
+              "All cached API data has been cleared. User settings preserved."
+            );
+          },
         },
       ]
     );
@@ -114,23 +154,22 @@ export default function Settings() {
     </TouchableOpacity>
   );
 
-const handleSyncProgress = () => {
-  Alert.alert(
-    'Sync Progress',
-    'Opening camera to scan your Tarkov progress...',
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Open Camera',
-        onPress: () => {
-          // TODO: Integrate ML Kit or camera flow here
-          console.log("Camera opened for progress sync");
-        }
-      }
-    ]
-  );
-};
-
+  const handleSyncProgress = () => {
+    Alert.alert(
+      "Sync Progress",
+      "Opening camera to scan your Tarkov progress...",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Open Camera",
+          onPress: () => {
+            // TODO: Integrate ML Kit or camera flow here
+            console.log("Camera opened for progress sync");
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ParallaxScrollView
@@ -148,7 +187,14 @@ const handleSyncProgress = () => {
             Player Name
           </ThemedText>
           <TextInput
-            style={[styles.textInput, { backgroundColor: inputBackground, borderColor, color: textPrimary }]}
+            style={[
+              styles.textInput,
+              {
+                backgroundColor: inputBackground,
+                borderColor,
+                color: textPrimary,
+              },
+            ]}
             value={playerNameInput}
             onChangeText={handlePlayerNameChange}
             placeholder="Enter your player name"
@@ -163,7 +209,14 @@ const handleSyncProgress = () => {
             Player Level
           </ThemedText>
           <TextInput
-            style={[styles.textInput, { backgroundColor: inputBackground, borderColor, color: textPrimary }]}
+            style={[
+              styles.textInput,
+              {
+                backgroundColor: inputBackground,
+                borderColor,
+                color: textPrimary,
+              },
+            ]}
             value={levelInput}
             onChangeText={handleLevelChange}
             keyboardType="numeric"
@@ -179,11 +232,20 @@ const handleSyncProgress = () => {
             PMC Faction
           </ThemedText>
           <TouchableOpacity
-            style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
+            style={[
+              styles.dropdown,
+              { backgroundColor: inputBackground, borderColor },
+            ]}
             onPress={() => setFactionModalVisible(true)}
           >
-            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>{settings.faction}</ThemedText>
-            <ThemedText style={[styles.dropdownArrow, { color: placeholderColor }]}>▼</ThemedText>
+            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>
+              {settings.faction}
+            </ThemedText>
+            <ThemedText
+              style={[styles.dropdownArrow, { color: placeholderColor }]}
+            >
+              ▼
+            </ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -193,11 +255,20 @@ const handleSyncProgress = () => {
             Game Edition
           </ThemedText>
           <TouchableOpacity
-            style={[styles.dropdown, { backgroundColor: inputBackground, borderColor }]}
+            style={[
+              styles.dropdown,
+              { backgroundColor: inputBackground, borderColor },
+            ]}
             onPress={() => setEditionModalVisible(true)}
           >
-            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>{settings.gameEdition}</ThemedText>
-            <ThemedText style={[styles.dropdownArrow, { color: placeholderColor }]}>▼</ThemedText>
+            <ThemedText style={[styles.dropdownText, { color: textPrimary }]}>
+              {settings.gameEdition}
+            </ThemedText>
+            <ThemedText
+              style={[styles.dropdownArrow, { color: placeholderColor }]}
+            >
+              ▼
+            </ThemedText>
           </TouchableOpacity>
         </ThemedView>
 
@@ -206,14 +277,13 @@ const handleSyncProgress = () => {
           style={styles.resetButton}
           onPress={handleResetProgress}
         >
-          <ThemedText style={styles.resetButtonText}>Reset Quest Progress</ThemedText>
+          <ThemedText style={styles.resetButtonText}>
+            Reset Quest Progress
+          </ThemedText>
         </TouchableOpacity>
 
         {/* Clear API Data Button */}
-        <TouchableOpacity
-          style={styles.cacheButton}
-          onPress={handleClearCache}
-        >
+        <TouchableOpacity style={styles.cacheButton} onPress={handleClearCache}>
           <ThemedText style={styles.cacheButtonText}>Clear API Data</ThemedText>
         </TouchableOpacity>
 
@@ -222,7 +292,9 @@ const handleSyncProgress = () => {
           style={styles.syncButton}
           onPress={handleSyncProgress}
         >
-          <ThemedText style={styles.syncButtonText}>Sync Progress via Camera</ThemedText>
+          <ThemedText style={styles.syncButtonText}>
+            Sync Progress via Camera
+          </ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
@@ -238,7 +310,9 @@ const handleSyncProgress = () => {
           activeOpacity={1}
           onPress={() => setFactionModalVisible(false)}
         >
-          <ThemedView style={[styles.modalContent, { backgroundColor: cardBackground }]}>
+          <ThemedView
+            style={[styles.modalContent, { backgroundColor: cardBackground }]}
+          >
             <ThemedText type="subtitle" style={styles.modalTitle}>
               Select PMC Faction
             </ThemedText>
@@ -263,7 +337,9 @@ const handleSyncProgress = () => {
           activeOpacity={1}
           onPress={() => setEditionModalVisible(false)}
         >
-          <ThemedView style={[styles.modalContent, { backgroundColor: cardBackground }]}>
+          <ThemedView
+            style={[styles.modalContent, { backgroundColor: cardBackground }]}
+          >
             <ThemedText type="subtitle" style={styles.modalTitle}>
               Select Game Edition
             </ThemedText>
@@ -296,7 +372,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   textInput: {
     borderWidth: 1,
@@ -307,9 +383,9 @@ const styles = StyleSheet.create({
     marginBottom: -10,
   },
   dropdown: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: Spacing.lg,
@@ -327,61 +403,61 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
   },
   resetButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cacheButton: {
     backgroundColor: AppColors.info,
     borderRadius: 8,
     paddingVertical: 14,
     paddingHorizontal: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cacheButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   syncButton: {
-  backgroundColor: AppColors.success, // green to show positive action
-  borderRadius: 8,
-  paddingVertical: 14,
-  paddingHorizontal: 20,
-  alignItems: 'center',
-  marginTop: 10,
+    backgroundColor: AppColors.success, // green to show positive action
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    marginTop: 10,
   },
   syncButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: AppColors.modalOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
     borderRadius: 12,
     padding: 20,
     minWidth: 280,
-    maxHeight: '60%',
+    maxHeight: "60%",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dropdownItem: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: "#f0f0f0",
   },
 });

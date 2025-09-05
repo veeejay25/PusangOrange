@@ -4,22 +4,23 @@ import { ThemedView } from "@/components/ThemedView";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { StyleSheet, ActivityIndicator } from "react-native";
-import { AppColors, Spacing } from '@/constants/Colors';
-import { useThemeColor } from '@/hooks/useThemeColor';
+import { AppColors, Spacing } from "@/constants/Colors";
+import { useThemeColor } from "@/hooks/useThemeColor";
 import FlexibleTracker from "../../components/ProgressTracker";
 import { useProgressData } from "@/hooks/useProgressData";
 import { usePlayerSettings } from "@/contexts/PlayerSettingsContext";
 
 export default function Profile() {
-  const { questProgress, kappaProgress, hideoutProgress, isLoading, error } = useProgressData();
+  const { questProgress, kappaProgress, hideoutProgress, isLoading, error } =
+    useProgressData();
   const { settings } = usePlayerSettings();
   const [isKappaMode, setIsKappaMode] = useState(false);
-  
+
   // Theme colors
-  const cardBackground = useThemeColor({}, 'cardBackground');
-  const textPrimary = useThemeColor({}, 'textPrimary');
-  const textSecondary = useThemeColor({}, 'textSecondary');
-  const shadowColor = useThemeColor({}, 'shadowColor');
+  const cardBackground = useThemeColor({}, "cardBackground");
+  const textPrimary = useThemeColor({}, "textPrimary");
+  const textSecondary = useThemeColor({}, "textSecondary");
+  const shadowColor = useThemeColor({}, "shadowColor");
 
   const handleEftToggle = () => {
     setIsKappaMode(!isKappaMode);
@@ -35,7 +36,9 @@ export default function Profile() {
       >
         <ThemedView style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={AppColors.primary} />
-          <ThemedText style={styles.loadingText}>Loading progress data...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            Loading progress data...
+          </ThemedText>
         </ThemedView>
       </ParallaxScrollView>
     );
@@ -88,7 +91,10 @@ export default function Profile() {
           animateProgress={true}
           animationDuration={2000}
           initialState={isKappaMode}
-          containerStyle={[styles.eftTrackerContainer, { backgroundColor: cardBackground, shadowColor }]}
+          containerStyle={[
+            styles.eftTrackerContainer,
+            { backgroundColor: cardBackground, shadowColor },
+          ]}
           headerStyle={styles.compactHeader}
           titleStyle={[styles.trackerTitle, { color: textPrimary }]}
           subtitleStyle={[styles.trackerSubtitle, { color: textSecondary }]}
@@ -111,7 +117,10 @@ export default function Profile() {
           maxProgress={hideoutProgress.percentage}
           animateProgress={true}
           animationDuration={2500}
-          containerStyle={[styles.hideoutTrackerContainer, { backgroundColor: cardBackground, shadowColor }]}
+          containerStyle={[
+            styles.hideoutTrackerContainer,
+            { backgroundColor: cardBackground, shadowColor },
+          ]}
           headerStyle={styles.compactHeader}
           titleStyle={[styles.trackerTitle, { color: textPrimary }]}
           subtitleStyle={[styles.trackerSubtitle, { color: textSecondary }]}
