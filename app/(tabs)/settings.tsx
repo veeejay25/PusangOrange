@@ -114,6 +114,24 @@ export default function Settings() {
     </TouchableOpacity>
   );
 
+const handleSyncProgress = () => {
+  Alert.alert(
+    'Sync Progress',
+    'Opening camera to scan your Tarkov progress...',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Open Camera',
+        onPress: () => {
+          // TODO: Integrate ML Kit or camera flow here
+          console.log("Camera opened for progress sync");
+        }
+      }
+    ]
+  );
+};
+
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "transparent", dark: "transparent" }}
@@ -197,6 +215,14 @@ export default function Settings() {
           onPress={handleClearCache}
         >
           <ThemedText style={styles.cacheButtonText}>Clear API Data</ThemedText>
+        </TouchableOpacity>
+
+        {/* Sync Progress via Camera Button */}
+        <TouchableOpacity
+          style={styles.syncButton}
+          onPress={handleSyncProgress}
+        >
+          <ThemedText style={styles.syncButtonText}>Sync Progress via Camera</ThemedText>
         </TouchableOpacity>
       </ThemedView>
 
@@ -317,6 +343,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cacheButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  syncButton: {
+  backgroundColor: AppColors.success, // green to show positive action
+  borderRadius: 8,
+  paddingVertical: 14,
+  paddingHorizontal: 20,
+  alignItems: 'center',
+  marginTop: 10,
+  },
+  syncButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
